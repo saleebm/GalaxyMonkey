@@ -1,0 +1,300 @@
+{
+  "$schema": "spritecook-assets.schema (per SPRITECOOK.md)",
+  "notes": "Manifest of SpriteCook-generated and SpriteCook-imported assets used by the GalaxyMonkey iOS target. Legacy normalized PNGs are not listed here; they live under sprite-pipeline/normalized/ and are imported into Assets.xcassets by import-to-xcassets.sh. Add a row here only when SpriteCook generates or imports something.",
+  "fields": {
+    "asset_id": "SpriteCook UUID — primary key.",
+    "sha12": "Sha-256 prefix of the SpriteCook output (if downloaded).",
+    "sha12_local": "Sha-256 prefix of the source PNG used at import time, if this row was imported from a legacy file.",
+    "label": "Logical role, e.g. player_ship_canonical, gorilla_canonical.",
+    "role": "Game role: player | enemy | projectile | pickup | fx | ui | backdrop.",
+    "asset_path": "Ship path inside the iOS bundle, e.g. GalaxyMonkey/Assets.xcassets/Player.imageset/player.png.",
+    "frames": "For animations: number of frames in the spritesheet.",
+    "frame_size": "For animations: [w, h] in pixels.",
+    "fps": "For animations: playback rate.",
+    "loops": "For animations: true if intended to loop.",
+    "output_format": "still | spritesheet | webp | gif"
+  },
+  "assets": [
+    {
+      "asset_id": "cb12d063-195d-442c-88f0-39bc132bca47",
+      "sha12_local": "07e992b39908",
+      "label": "player_legacy_import",
+      "role": "player",
+      "asset_path": null,
+      "output_format": "still",
+      "notes": "Earlier import of the Android legacy player.png. Superseded by player_ship_canonical_v3."
+    },
+    {
+      "asset_id": "8c2aba65-b5b6-4e09-98ef-d39d7f16a92b",
+      "label": "player_ship_canonical_v2",
+      "role": "player",
+      "asset_path": null,
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "A chunky cartoon spaceship shaped like a smiling monkey face, top-down 3/4 view, banana-yellow hull, glass cockpit visor, two glowing blue thruster nozzles at the back, clean silhouette, transparent background",
+      "size": [256, 256],
+      "notes": "Reference base for v3 edit. No longer the bundled player asset."
+    },
+    {
+      "asset_id": "ed96846f-93ff-4137-a198-5f1de4080011",
+      "label": "player_ship_canonical_v3",
+      "role": "player",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Player.imageset/player_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Refined banana-yellow cartoon monkey-face spaceship, top-down 3/4 view, glossy hull with subtle metallic sheen, twin glowing blue ion thrusters at rear, sharper aerodynamic silhouette, glass cockpit dome catching starlight, two side wing fins curved like banana peels, friendly grinning monkey-face front, cartoon stylized, transparent background",
+      "edit_of": "8c2aba65-b5b6-4e09-98ef-d39d7f16a92b",
+      "size": [256, 256]
+    },
+    {
+      "asset_id": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "label": "gorilla_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Gorilla.imageset/gorilla_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Angry cartoon space gorilla boss enemy floating in zero-g, front view, beefy arms holding a small round bomb in one fist, glowing red eyes, dark gray fur with metallic harness, cartoon stylized, transparent background",
+      "size": [256, 256],
+      "notes": "Style anchor — passed as reference_asset_id for every new enemy generation."
+    },
+    {
+      "asset_id": "097e8b09-7c32-4d79-ad2e-8e1d116a3eec",
+      "label": "preppy_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/PreppyLeft.imageset/preppy_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Generated facing-left. PreppyRight.imageset uses a sips-horizontal flip of this asset."
+    },
+    {
+      "asset_id": "68a24eb0-df2f-4844-b8b4-90195a358d0c",
+      "label": "white_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/WhiteLeft.imageset/white_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Generated facing-left. WhiteRight.imageset uses a sips-horizontal flip of this asset."
+    },
+    {
+      "asset_id": "8edef4ce-5864-41a4-9614-e3e3e54f2aee",
+      "label": "shady_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/ShadyLeft.imageset/shady_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Generated facing-left. ShadyRight.imageset uses a sips-horizontal flip of this asset."
+    },
+    {
+      "asset_id": "dfbd46ff-3161-4e44-ba19-d60447a85e21",
+      "label": "drone_swarm_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/DroneSwarm.imageset/drone_swarm_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Omnidirectional creature — single imageset, no L/R pair."
+    },
+    {
+      "asset_id": "3733d9b0-9063-4b79-8e5c-230312049d8d",
+      "label": "heavy_cosmonaut_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/HeavyCosmonautLeft.imageset/heavy_cosmonaut_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "HeavyCosmonautRight.imageset uses a sips-horizontal flip of this asset."
+    },
+    {
+      "asset_id": "05966d6f-bf7e-4857-8d4f-7da47e99198c",
+      "label": "plasma_jelly_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/PlasmaJelly.imageset/plasma_jelly_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Omnidirectional creature — single imageset, no L/R pair."
+    },
+    {
+      "asset_id": "790b2573-344d-4caa-83cf-f96ed9c1d821",
+      "label": "astro_sniper_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/AstroSniperRight.imageset/astro_sniper_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Generated facing-right. AstroSniperLeft.imageset uses a sips-horizontal flip of this asset."
+    },
+    {
+      "asset_id": "069d697a-43f0-42b9-ba77-913a7ddcf077",
+      "label": "mini_boss_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/MiniBossLeft.imageset/mini_boss_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "MiniBossRight.imageset uses a sips-horizontal flip of this asset."
+    },
+    {
+      "asset_id": "6d7fa75a-42c0-49a6-9090-6c12d0e34972",
+      "label": "gorilla_windup_pose",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindup.imageset/gorilla_windup_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "size": [256, 256],
+      "notes": "Source still for the gorilla_windup_throw animation."
+    },
+    {
+      "asset_id": "c7c45cb4-b4c3-410b-a954-6a1ae2bfab2c",
+      "label": "gorilla_windup_throw_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindupAnim.spriteatlas/",
+      "output_format": "webp",
+      "animated_from": "6d7fa75a-42c0-49a6-9090-6c12d0e34972",
+      "frames": 8,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": true,
+      "notes": "Animated WebP decoded into 8 PNG frames via webpmux + dwebp. Load in SpriteKit with SKTextureAtlas(named: \"GorillaWindupAnim\") then SKAction.animate(with:textures, timePerFrame: 0.125)."
+    },
+    {
+      "asset_id": "33fa965d-c58e-4511-9b1a-6e9acc39a50b",
+      "label": "space_backdrop_v1",
+      "role": "backdrop",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/SpaceBackdrop.imageset/space_backdrop.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Deep space backdrop, dark navy and indigo nebula clouds, distant pinpoint stars, a faint cool-purple swirl in the lower right, subtle vignetting, seamless tileable, painterly digital art",
+      "size": [512, 288]
+    },
+    {
+      "asset_id": "48d06243-f71d-4b04-bbf3-a6741ec89dfc",
+      "label": "explosion_canonical",
+      "role": "fx",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Explosion.imageset/explosion_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Cartoon space explosion at peak energy, bright orange-yellow fireball core, jagged flame tongues, scattered debris and rock chunks, expanding smoke ring with embers, slight red rim glow, front view, no characters, 256x256 HD detailed cartoon style, transparent background",
+      "size": [256, 256]
+    },
+    {
+      "asset_id": "a2183cb4-e15e-478e-86ab-b54b55e02adf",
+      "label": "explosion_anim",
+      "role": "fx",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/ExplosionAnim.spriteatlas/",
+      "output_format": "webp",
+      "animated_from": "48d06243-f71d-4b04-bbf3-a6741ec89dfc",
+      "frames": 16,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": false,
+      "notes": "Sliced from the spritesheet PNG (10240×640) via sips --cropOffset into 16 separate 640×640 PNGs. GameScene.spawnExplosion runs one-shot via AnimationCatalog.oneShot(.explosion, frameDuration: 1/24)."
+    },
+    {
+      "asset_id": "3c43ddb6-7641-4739-a486-45449249f77c",
+      "label": "player_bullet_hd_energy",
+      "role": "projectile",
+      "asset_path": null,
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "ed96846f-93ff-4137-a198-5f1de4080011",
+      "prompt": "Glowing banana-yellow energy bolt projectile, side view facing right, sharp aerodynamic teardrop shape, bright white-hot core, soft yellow glow halo, faint streak trail behind, cartoon stylized HD, transparent background",
+      "size": [128, 128],
+      "notes": "First-pass energy-bolt player projectile. Superseded by player_bullet_banana — kept as a referenceable asset."
+    },
+    {
+      "asset_id": "abf17226-90e0-43ce-a5d4-3d4e6198e320",
+      "label": "player_bullet_banana",
+      "role": "projectile",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Bullet.imageset/bullet_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "ed96846f-93ff-4137-a198-5f1de4080011",
+      "prompt": "Cartoon ripe yellow banana projectile, side view laying horizontally with the tip pointing to the RIGHT, glossy banana-yellow skin with subtle highlights and a small white shine, small brown stem on the LEFT end, slight natural curve, soft yellow motion glow halo, cartoon stylized HD, transparent background",
+      "size": [128, 128],
+      "notes": "Active player ammo. Drawn facing right; ProjectileSystem.fire rotates via b.node.zRotation = aim angle, so the tip naturally points where the right stick aims."
+    },
+    {
+      "asset_id": "285cd15a-f20f-4e4e-8ee2-b123716c066a",
+      "label": "enemy_bullet_hd",
+      "role": "projectile",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/EnemyBullet.imageset/enemybullet_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Glowing crimson plasma bolt projectile, side view facing left, jagged electric edges, bright white-hot core, magenta-red outer glow, crackling energy detail, cartoon stylized HD, transparent background",
+      "size": [128, 128]
+    },
+    {
+      "asset_id": "2573cccd-37ef-4f93-b394-c39a9f58c85d",
+      "label": "bomb_hd",
+      "role": "projectile",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Bomb.imageset/bomb_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "prompt": "Cartoon round black space bomb projectile, side view, classic spherical bomb with short lit fuse on top, bright orange spark at fuse tip, subtle metallic sheen, slight silver highlight, small white glint, cartoon stylized HD, transparent background",
+      "size": [128, 128],
+      "notes": "Used by ProjectileSystem.fireBomb when gorilla throws."
+    },
+    {
+      "asset_id": "affdee57-54fa-493f-bde7-c8a139277768",
+      "label": "gorilla_idle_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaIdleAnim.spriteatlas/",
+      "output_format": "webp",
+      "animated_from": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "frames": 8,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": true,
+      "notes": "Sliced from 5120×640 spritesheet PNG via sips. EnemySystem.makeEnemyVisual starts this loop on gorilla spawn with SKAction.repeatForever; PlayGorillaWindup interrupts and restores it."
+    },
+    {
+      "asset_id": "26e861ae-90e6-40a5-aebb-a52f907ba147",
+      "label": "title_logo",
+      "role": "ui",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Title.imageset/title_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Game logo art for 'GALAXY MONKEY', big chunky cartoon block letters in banana-yellow with thick deep-purple outline and starry purple-blue inner shading, playful slight tilt, tiny smiling monkey face nestled inside the letter O, small star sparkles around edges, cartoon stylized HD, transparent background, horizontal layout",
+      "size": [512, 256]
+    },
+    {
+      "asset_id": "ca49cbd1-fe28-4c62-9ca0-bcc3eb7bacf7",
+      "label": "pause_icon",
+      "role": "ui",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/PauseIcon.imageset/pause_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Cartoon pause button game UI icon, two thick vertical banana-yellow rounded rectangles inside a circular banana-yellow border with deep-purple outline, glossy highlight, simple bold flat cartoon style, 128x128 HD, transparent background",
+      "size": [128, 128]
+    },
+    {
+      "asset_id": "94767659-03c9-4e28-9c13-137a90cd325c",
+      "label": "life_heart_banana",
+      "role": "ui",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/LifeHeart.imageset/life_heart_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Cartoon banana-shaped life icon for game HUD, banana-yellow curved peel shape with brown stem, glossy highlight on top, deep-purple outline, slight friendly tilt, small star glint, simple bold cartoon style, 128x128 HD, transparent background",
+      "size": [128, 128],
+      "notes": "Banana instead of heart — leans into the game theme. HUDController stamps N of these top-right."
+    }
+  ],
+  "todo": [
+    "Banana / RottenBanana pickup system (orphaned art, separate feature).",
+    "Optional: thrust b14-b16 import + player thruster animation."
+  ]
+}

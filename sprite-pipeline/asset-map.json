@@ -1,0 +1,427 @@
+{
+  "$schema": "asset-map.schema (informal)",
+  "meta": {
+    "generated": "2026-05-15",
+    "sourceRoot": "/Users/minasaleeb/workspaces/galaxy_monkey_assets",
+    "targetProject": "/Users/minasaleeb/workspaces/gma",
+    "legacyStack": "Android Java + Canvas",
+    "targetStack": "TypeScript + Phaser (Bun)",
+    "totals": {
+      "spriteFolderPngs": 24,
+      "spriteFolderInUse": 16,
+      "spriteFolderUnused": 8,
+      "drawableNonAnimation": 18,
+      "animationFrames": 28,
+      "deadFrameFiles": 17,
+      "launcherFamilies": 6,
+      "layouts": 3
+    }
+  },
+
+  "player": {
+    "ship": {
+      "id": "player_ship",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/player.png",
+      "relPath": "app/src/main/Assets/sprites/player.png",
+      "filename": "player.png",
+      "bytes": 31054,
+      "width": 275,
+      "height": 133,
+      "loadedBy": "Monkey.java (via generic 'file' ctor arg, called from scene/state outside GameObjects/)",
+      "renderHints": { "anchor": "top_left_in_java", "phaserOrigin": "0.5,0.5", "rotates": true },
+      "notes": "Single horizontal silhouette. Wide ~2:1 — verify it is NOT a 2-frame strip when packing."
+    }
+  },
+
+  "gorillaBoss": {
+    "animation": {
+      "id": "gorilla_idle_cycle",
+      "loop": true,
+      "cycleMs": 2250,
+      "anchor": "center",
+      "frames": [
+        { "step": 1, "tMs": 0,    "file": "gorilla.png",     "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/gorilla.png",     "width": 214, "height": 217, "bytes": 54527 },
+        { "step": 2, "tMs": 750,  "file": "gorillat1l.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/gorillat1l.png",  "width": 274, "height": 261, "bytes": 70245 },
+        { "step": 3, "tMs": 1250, "file": "gorillat2r.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/gorillat2r.png",  "width": 213, "height": 217, "bytes": 54308 },
+        { "step": 4, "tMs": 1750, "file": "gorillar.png",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/gorillar.png",    "width": 225, "height": 219, "bytes": 61012 }
+      ],
+      "loadedBy": "Gorilla.java",
+      "notes": "NON-uniform frame sizes. Java re-decodes the PNG every tick — Phaser should preload all four and switch via setTexture. Frame 2 (gorillat1l) is substantially larger (274x261), suggesting an extended-arm/thrust pose."
+    },
+    "weapon": {
+      "id": "gorilla_bomb",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/bomb.png",
+      "filename": "bomb.png",
+      "width": 75, "height": 78, "bytes": 2360,
+      "loadedBy": "Gorilla.fireWeapon",
+      "renderHints": { "rotates": true },
+      "notes": "Single frame; rotation applied via matrix per frame."
+    }
+  },
+
+  "enemies": {
+    "PREPPY_MONKEY": {
+      "dims": { "width": 150, "height": 225 },
+      "left":  { "file": "enemy.png",  "bytes": 34556, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemy.png",  "condition": "velX < 0" },
+      "right": { "file": "enemyr.png", "bytes": 34697, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemyr.png", "condition": "velX >= 0" }
+    },
+    "WHITE_MONKEY": {
+      "dims": { "width": 156, "height": 226 },
+      "left":  { "file": "enemyb.png",  "bytes": 37834, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemyb.png",  "condition": "velX < 0" },
+      "right": { "file": "enemyb1.png", "bytes": 37592, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemyb1.png", "condition": "velX >= 0", "warning": "naming inconsistency — '1' suffix means RIGHT here" }
+    },
+    "SHADY_MONKEY": {
+      "dims": { "width": 163, "height": 159 },
+      "left":  { "file": "enemys1.png", "bytes": 24015, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemys1.png", "condition": "velX < 0", "warning": "naming inconsistency — '1' suffix means LEFT here" },
+      "right": { "file": "enemysr.png", "bytes": 24058, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemysr.png", "condition": "velX >= 0" }
+    },
+    "loadedBy": "Enemy.java",
+    "renderHints": { "rotates": false, "directionalSwap": "by velX sign" }
+  },
+
+  "projectiles": {
+    "playerBullet": {
+      "id": "bullet",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/bullet.png",
+      "filename": "bullet.png",
+      "width": 48, "height": 46, "bytes": 4315,
+      "loadedBy": "Monkey.fireWeapon",
+      "renderHints": { "rotates": true }
+    },
+    "enemyBullet": {
+      "id": "enemybullet",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/enemybullet.png",
+      "filename": "enemybullet.png",
+      "width": 48, "height": 46, "bytes": 4049,
+      "loadedBy": "Enemy.fireWeapon (ID.SPACE_MONKEY)",
+      "renderHints": { "rotates": true }
+    },
+    "pairNote": "bullet and enemybullet share dims (48x46) — same shape, different palette."
+  },
+
+  "collectibles": {
+    "banana": {
+      "id": "banana",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/banana.png",
+      "filename": "banana.png",
+      "width": 135, "height": 105, "bytes": 18873,
+      "loadedBy": "Juice.java (via generic 'file' ctor arg)",
+      "notes": "Primary pickup."
+    },
+    "rottenBanana": {
+      "id": "rb",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/rb.png",
+      "filename": "rb.png",
+      "width": 135, "height": 105, "bytes": 18851,
+      "loadedBy": "Juice.java (via generic 'file' ctor arg)",
+      "notes": "Likely red/rotten banana variant — identical dims and near-identical bytes vs banana.png."
+    }
+  },
+
+  "animationSequences": {
+    "explosion": {
+      "id": "explosion",
+      "sourceClass": "BombExplosion.java",
+      "framePrefix": "e",
+      "indexRange": [1, 25],
+      "frameCount": 25,
+      "loop": false,
+      "anchorLegacy": "top_left",
+      "phaserAtlasRecommended": true,
+      "frameSize": { "minW": 80, "maxW": 108, "minH": 67, "maxH": 105, "uniform": false },
+      "delayMsLegacy": 1,
+      "playbackNote": "AnimatedObject.setDelay(1) advances every render tick → effectively renderer-FPS bound. Plays once, then halts.",
+      "frames": [
+        { "i": 1,  "file": "e1.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e1.png",  "width": 100, "height": 100, "bytes": 1932 },
+        { "i": 2,  "file": "e2.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e2.png",  "width": 80,  "height": 75,  "bytes": 2383 },
+        { "i": 3,  "file": "e3.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e3.png",  "width": 82,  "height": 67,  "bytes": 2808 },
+        { "i": 4,  "file": "e4.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e4.png",  "width": 90,  "height": 79,  "bytes": 3109 },
+        { "i": 5,  "file": "e5.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e5.png",  "width": 93,  "height": 87,  "bytes": 3396 },
+        { "i": 6,  "file": "e6.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e6.png",  "width": 99,  "height": 99,  "bytes": 3602 },
+        { "i": 7,  "file": "e7.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e7.png",  "width": 97,  "height": 81,  "bytes": 3773 },
+        { "i": 8,  "file": "e8.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e8.png",  "width": 102, "height": 86,  "bytes": 3871 },
+        { "i": 9,  "file": "e9.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e9.png",  "width": 105, "height": 100, "bytes": 4013 },
+        { "i": 10, "file": "e10.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e10.png", "width": 104, "height": 105, "bytes": 4052 },
+        { "i": 11, "file": "e11.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e11.png", "width": 94,  "height": 92,  "bytes": 4079 },
+        { "i": 12, "file": "e12.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e12.png", "width": 104, "height": 85,  "bytes": 4102 },
+        { "i": 13, "file": "e13.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e13.png", "width": 103, "height": 96,  "bytes": 4119 },
+        { "i": 14, "file": "e14.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e14.png", "width": 106, "height": 93,  "bytes": 4091 },
+        { "i": 15, "file": "e15.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e15.png", "width": 98,  "height": 96,  "bytes": 4035 },
+        { "i": 16, "file": "e16.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e16.png", "width": 98,  "height": 88,  "bytes": 4058 },
+        { "i": 17, "file": "e17.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e17.png", "width": 100, "height": 93,  "bytes": 4062 },
+        { "i": 18, "file": "e18.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e18.png", "width": 102, "height": 84,  "bytes": 3933 },
+        { "i": 19, "file": "e19.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e19.png", "width": 105, "height": 105, "bytes": 3945 },
+        { "i": 20, "file": "e20.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e20.png", "width": 99,  "height": 99,  "bytes": 3791 },
+        { "i": 21, "file": "e21.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e21.png", "width": 108, "height": 88,  "bytes": 3541 },
+        { "i": 22, "file": "e22.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e22.png", "width": 102, "height": 84,  "bytes": 2967 },
+        { "i": 23, "file": "e23.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e23.png", "width": 104, "height": 90,  "bytes": 2582 },
+        { "i": 24, "file": "e24.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e24.png", "width": 108, "height": 92,  "bytes": 2053 },
+        { "i": 25, "file": "e25.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/e25.png", "width": 82,  "height": 90,  "bytes": 1113 }
+      ]
+    },
+    "thrust": {
+      "id": "spaceship_thrust",
+      "sourceClass": "SpaceShipThrust.java",
+      "framePrefix": "b",
+      "usedIndices": [14, 15, 16],
+      "frameCount": 3,
+      "loop": false,
+      "anchorLegacy": "top_left",
+      "phaserAtlasRecommended": true,
+      "delayMsLegacy": 10,
+      "frameSize": { "minW": 24, "maxW": 25, "minH": 33, "maxH": 36, "uniform": false },
+      "playbackNote": "Pre-rotated via matrix before AnimatedObject draws. Plays once.",
+      "frames": [
+        { "i": 14, "file": "b14.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b14.png", "width": 24, "height": 36, "bytes": 1668 },
+        { "i": 15, "file": "b15.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b15.png", "width": 24, "height": 33, "bytes": 1760 },
+        { "i": 16, "file": "b16.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b16.png", "width": 25, "height": 35, "bytes": 1601 }
+      ]
+    }
+  },
+
+  "celestial": {
+    "loadedBy": "CelestialObject.java (likely)",
+    "planets": [
+      { "id": "venus",   "file": "venus.png",   "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/venus.png",   "width": 200, "height": 200, "bytes": 79028 },
+      { "id": "uranus",  "file": "uranus.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/uranus.png",  "width": 200, "height": 197, "bytes": 16356 },
+      { "id": "mars",    "file": "mars.png",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/mars.png",    "width": 200, "height": 200, "bytes": 35523 },
+      { "id": "jupiter", "file": "jupiter.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/jupiter.png", "width": 200, "height": 189, "bytes": 14871 },
+      { "id": "neptune", "file": "neptune.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/neptune.png", "width": 200, "height": 199, "bytes": 7458 },
+      { "id": "mercury", "file": "mercury.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/mercury.png", "width": 150, "height": 147, "bytes": 23751 },
+      { "id": "saturn",  "file": "saturn.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/saturn.png",  "width": 365, "height": 147, "bytes": 7470, "notes": "wide aspect for rings — preserve when packing" },
+      { "id": "sun",     "file": "sun.png",     "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/sun.png",     "width": 200, "height": 190, "bytes": 25297 },
+      { "id": "earth",   "file": "earth.png",   "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/earth.png",   "width": 200, "height": 200, "bytes": 23793 }
+    ],
+    "rotateAnim": {
+      "xml": "app/src/main/res/anim/rotate.xml",
+      "fromDeg": 0,
+      "toDeg": 359,
+      "durationMs": 16000,
+      "repeat": "infinite",
+      "interpolator": "linear",
+      "pivot": "50%/50%",
+      "notes": "Generic View animation used to spin a static drawable (likely earth/blackhole)."
+    }
+  },
+
+  "specialFx": [
+    { "id": "blackhole", "file": "blackhole.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/blackhole.png", "width": 1230, "height": 1264, "bytes": 2620457, "warning": "oversized — downscale for web" },
+    { "id": "glow",      "file": "glow.png",      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/glow.png",      "width": 35,   "height": 20,   "bytes": 1068,    "role": "exhaust_particle" },
+    { "id": "pink_ball", "file": "pink_ball.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/pink_ball.png", "width": 159,  "height": 159,  "bytes": 4739,    "role": "joystick_thumb" }
+  ],
+
+  "ui": [
+    { "id": "pause_btn",           "file": "pause_btn.png",           "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/pause_btn.png",           "width": 100, "height": 51,  "bytes": 8134 },
+    { "id": "pausefloat",          "file": "pausefloat.png",          "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/pausefloat.png",          "width": 588, "height": 285, "bytes": 102557, "role": "pause_overlay_monkey_float" },
+    { "id": "life",                "file": "life.png",                "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/life.png",                "width": 22,  "height": 22,  "bytes": 3034, "role": "life_indicator (x3 in HUD)" },
+    { "id": "joystick_background", "file": "joystick_background.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/joystick_background.png", "width": 492, "height": 492, "bytes": 40263 },
+    { "id": "title",               "file": "title.png",               "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/title.png",               "width": 769, "height": 391, "bytes": 102291, "role": "menu_and_gameover_title_logo" }
+  ],
+
+  "background": [
+    { "id": "back", "file": "back.jpg", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/back.jpg", "width": 1920, "height": 1080, "bytes": 585159, "warning": "convert to WebP/AVIF for web build" }
+  ],
+
+  "vectorDrawables": [
+    { "file": "ic_launcher_background.xml", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/ic_launcher_background.xml",     "viewport": "108x108", "notes": "teal grid (#26A69A / #33FFFFFF) adaptive-icon bg" },
+    { "file": "ic_launcher_foreground.xml", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable-v24/ic_launcher_foreground.xml", "viewport": "108x108", "notes": "stock Android robot — not branded" }
+  ],
+
+  "launcherIcons": [
+    {
+      "name": "ic_launcher",
+      "variants": [
+        { "dpi": "mdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-mdpi/ic_launcher.png",    "width": 48,  "height": 48,  "bytes": 6319 },
+        { "dpi": "hdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-hdpi/ic_launcher.png",    "width": 72,  "height": 72,  "bytes": 13036 },
+        { "dpi": "xhdpi",   "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xhdpi/ic_launcher.png",   "width": 96,  "height": 96,  "bytes": 21821 },
+        { "dpi": "xxhdpi",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",  "width": 144, "height": 144, "bytes": 44222 },
+        { "dpi": "xxxhdpi", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png", "width": 192, "height": 192, "bytes": 73545 }
+      ]
+    },
+    {
+      "name": "ic_launcher_round",
+      "variants": [
+        { "dpi": "mdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",    "width": 48,  "height": 48,  "bytes": 6319 },
+        { "dpi": "hdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",    "width": 72,  "height": 72,  "bytes": 13036 },
+        { "dpi": "xhdpi",   "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",   "width": 96,  "height": 96,  "bytes": 21821 },
+        { "dpi": "xxhdpi",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",  "width": 144, "height": 144, "bytes": 44222 },
+        { "dpi": "xxxhdpi", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png", "width": 192, "height": 192, "bytes": 73545 }
+      ],
+      "notes": "byte-identical to ic_launcher per DPI bucket — safe to dedupe"
+    },
+    {
+      "name": "ic_launcher_background",
+      "variants": [
+        { "dpi": "mdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-mdpi/ic_launcher_background.png",    "width": 108, "height": 108, "bytes": 32401 },
+        { "dpi": "hdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-hdpi/ic_launcher_background.png",    "width": 162, "height": 162, "bytes": 69763 },
+        { "dpi": "xhdpi",   "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xhdpi/ic_launcher_background.png",   "width": 216, "height": 216, "bytes": 120099 },
+        { "dpi": "xxhdpi",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxhdpi/ic_launcher_background.png",  "width": 324, "height": 324, "bytes": 256489 },
+        { "dpi": "xxxhdpi", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxxhdpi/ic_launcher_background.png", "width": 432, "height": 432, "bytes": 439078 }
+      ]
+    },
+    {
+      "name": "ic_launcher_foreground",
+      "variants": [
+        { "dpi": "mdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",    "width": 108, "height": 108, "bytes": 3142 },
+        { "dpi": "hdpi",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",    "width": 162, "height": 162, "bytes": 5505 },
+        { "dpi": "xhdpi",   "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",   "width": 216, "height": 216, "bytes": 8226 },
+        { "dpi": "xxhdpi",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",  "width": 324, "height": 324, "bytes": 14916 },
+        { "dpi": "xxxhdpi", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png", "width": 432, "height": 432, "bytes": 23145 }
+      ]
+    },
+    {
+      "name": "ic_launcher_adaptive",
+      "variants": [
+        { "dpi": "anydpi-v26", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",       "type": "adaptive-icon-xml" },
+        { "dpi": "anydpi-v26", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml", "type": "adaptive-icon-xml" }
+      ]
+    },
+    {
+      "name": "ic_launcher_web",
+      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/ic_launcher_web.png",
+      "width": 512, "height": 512, "bytes": 126482,
+      "notes": "Only branded launcher artwork — repurpose for PWA icon."
+    }
+  ],
+
+  "layouts": [
+    {
+      "name": "activity_splash_screen.xml",
+      "scene": "MenuScene (Phaser)",
+      "referencedDrawables": ["title"],
+      "notes": "Full-bleed title bg + Start button."
+    },
+    {
+      "name": "activity_main.xml",
+      "scene": "PlayScene + HUDScene (Phaser)",
+      "referencedDrawables": ["back", "joystick_background", "pink_ball", "pause_btn", "blackhole", "glow", "pausefloat", "life"],
+      "notes": "Starfield bg, dual joysticks (left = image-based with pink_ball thumb on joystick_background; right = procedural), top-right pause button, top-left Score/Level TextViews + 3-life row, hidden pause overlay (blackhole + pausefloat + Resume/NewGame), hidden glow exhaust particle, ProgressBar."
+    },
+    {
+      "name": "activity_game_over.xml",
+      "scene": "GameOverScene (Phaser)",
+      "referencedDrawables": ["back", "title"],
+      "notes": "Starfield + title logo + Score/Best + Restart."
+    }
+  ],
+
+  "values": {
+    "colors": {
+      "colorPrimary": "#3F51B5",
+      "colorPrimaryDark": "#303F9F",
+      "colorAccent": "#FF4081",
+      "darkGrey": "#A9A9A9",
+      "whiteSmoke": "#f5f5f5",
+      "spaceBlue": "#ADD8E6",
+      "black_overlay": "#66000000"
+    },
+    "strings": {
+      "app_name": "GalaxyMonkey",
+      "preference_file_key": "com.theGalaxyMonkey.Activities.ActivityManagement.GameView.Game",
+      "total_score": "Score: %1$d",
+      "highest_score": "Best: %1$d",
+      "placeholder": "0",
+      "placeholderempty": "%1$d",
+      "restartbtn": "Restart",
+      "scores_prefixNI": " Score: ",
+      "highscores_prefixNI": " Best: ",
+      "level_prefixNI": " Level: ",
+      "scores_prefix": " Score: %1$d",
+      "level_prefix": " Level: %1$d",
+      "exhaust_particle": "Exhaust Particle",
+      "DSN": "https://73db80f17bc34305a88073d0fc91dc98@sentry.io/1205112",
+      "title_activity_fullscreen": "FullscreenActivity"
+    },
+    "styles": ["AppTheme (parent=Theme.AppCompat.NoActionBar)", "FullscreenTheme (parent=AppTheme)", "FullscreenActionBarStyle (parent=Widget.AppCompat.ActionBar)"],
+    "attrs": ["ButtonBarContainerTheme.metaButtonBarStyle (reference)", "ButtonBarContainerTheme.metaButtonBarButtonStyle (reference)"]
+  },
+
+  "unused": {
+    "sprites": [
+      { "file": "astronaut.png",      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/astronaut.png",      "width": 1057, "height": 1940, "bytes": 1030394, "notes": "concept art" },
+      { "file": "5815018c...vexels.png", "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/5815018c2e53543c6b60aa6d40500334-astronaut-helmet-cartoon-by-vexels.png", "width": 512, "height": 512, "bytes": 9532, "notes": "stock vexels.com helmet" },
+      { "file": "enemya.png",         "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/enemya.png",         "width": 1241, "height": 1698, "bytes": 936520, "notes": "hi-res enemy master" },
+      { "file": "enemyteam.png",      "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/enemyteam.png",      "width": 910,  "height": 573,  "bytes": 2086741, "notes": "suspected lineup/key art" },
+      { "file": "missile.png",        "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/missile.png",        "width": 100,  "height": 37,   "bytes": 6314,   "notes": "horizontal missile silhouette" },
+      { "file": "pauseMonkey.png",    "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/pauseMonkey.png",    "width": 1597, "height": 1770, "bytes": 1219885, "notes": "full-screen pause art" },
+      { "file": "spaceshipMonkeys.png","path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/spaceshipMonkeys.png","width": 685,  "height": 328,  "bytes": 223497,  "notes": "suspected ship strip" },
+      { "file": "ufo-spaceship.png",  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/Assets/sprites/unused/ufo-spaceship.png",  "width": 600,  "height": 600,  "bytes": 260762,  "notes": "stock UFO" }
+    ],
+    "deadFrames": {
+      "notes": "These b*.png files exist on disk but no Java/XML references them. b14-b16 are the only live thrust frames. b17/b18 share the same small dim cluster (24x33-36) as thrust frames but are unwired; b1-b13 and b19-b20 form a separate 33-36 x 48-50 cluster that may have been an older thrust or projectile family.",
+      "indices": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20],
+      "files": [
+        { "i": 1,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b1.png",  "width": 34, "height": 50, "bytes": 1036 },
+        { "i": 2,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b2.png",  "width": 33, "height": 50, "bytes": 1012 },
+        { "i": 3,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b3.png",  "width": 36, "height": 50, "bytes": 1180 },
+        { "i": 4,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b4.png",  "width": 35, "height": 49, "bytes": 1306 },
+        { "i": 5,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b5.png",  "width": 33, "height": 48, "bytes": 1250 },
+        { "i": 6,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b6.png",  "width": 35, "height": 49, "bytes": 1358 },
+        { "i": 7,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b7.png",  "width": 34, "height": 50, "bytes": 1183 },
+        { "i": 8,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b8.png",  "width": 34, "height": 48, "bytes": 1169 },
+        { "i": 9,  "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b9.png",  "width": 35, "height": 49, "bytes": 1279 },
+        { "i": 10, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b10.png", "width": 34, "height": 50, "bytes": 1095 },
+        { "i": 11, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b11.png", "width": 34, "height": 49, "bytes": 1075 },
+        { "i": 12, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b12.png", "width": 34, "height": 50, "bytes": 1290 },
+        { "i": 13, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b13.png", "width": 34, "height": 50, "bytes": 1083 },
+        { "i": 17, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b17.png", "width": 24, "height": 36, "bytes": 1721 },
+        { "i": 18, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b18.png", "width": 24, "height": 34, "bytes": 1860 },
+        { "i": 19, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b19.png", "width": 34, "height": 49, "bytes": 964 },
+        { "i": 20, "path": "/Users/minasaleeb/workspaces/galaxy_monkey_assets/app/src/main/res/drawable/b20.png", "width": 33, "height": 49, "bytes": 965 }
+      ]
+    }
+  },
+
+  "warnings": [
+    "Enemy LEFT/RIGHT naming is inconsistent: PREPPY uses base/'r'; WHITE uses base/'1' (1 = RIGHT); SHADY uses '1'/'r' (1 = LEFT). Wire textures from the velX>=0 mapping in Enemy.java to avoid flipping variants.",
+    "player.png, banana.png, rb.png are NOT referenced in any Java file directly — they are passed as strings from caller code (scene/state). Treat as in-use by semantics.",
+    "Gorilla frames are individual PNGs with non-uniform dimensions; Java re-decodes the PNG every tick. Phaser should preload all four and use setTexture/setOrigin(0.5).",
+    "ImageGameObject loads PNGs on every render for directional/animated swaps — port must preload, never re-decode at runtime.",
+    "BombExplosion uses e*.png (despite the b/e prefix muddle). SpaceShipThrust uses ONLY b14-b16. 17 other b*.png files are dead weight.",
+    "Animation frames are non-uniform in size in both sequences — pack with a trim-aware atlas (TexturePacker JSON) rather than a fixed-grid spritesheet.",
+    "Legacy canvas anchor is top-left; Phaser default origin is 0.5. Either setOrigin(0,0) or recenter to (0.5,0.5) and adjust positions consistently.",
+    "blackhole.png is 2.6MB at 1230x1264 — downscale before shipping to web.",
+    "back.jpg is 1.9MB at 1920x1080 — consider WebP/AVIF.",
+    "Sentry DSN is hard-coded in strings.xml — strip or rotate before shipping a public web build.",
+    "ic_launcher and ic_launcher_round are byte-identical per DPI bucket — dedupe.",
+    "ic_launcher_foreground.xml is the stock Android robot, not Galaxy Monkey branding — regenerate from title.png or a fresh mark for PWA.",
+    "rotate.xml is a generic 16s linear infinite spin View animation — unrelated to e/b sequences."
+  ],
+
+  "phaserPortRecommendations": {
+    "atlases": [
+      {
+        "atlas": "monkey",
+        "contents": ["player.png", "bullet.png", "enemybullet.png", "bomb.png", "banana.png", "rb.png", "glow.png", "life.png", "pause_btn.png", "pink_ball.png"],
+        "rationale": "small UI + projectiles + pickups packed once"
+      },
+      {
+        "atlas": "enemies",
+        "contents": ["enemy.png", "enemyr.png", "enemyb.png", "enemyb1.png", "enemys1.png", "enemysr.png", "gorilla.png", "gorillat1l.png", "gorillat2r.png", "gorillar.png"],
+        "rationale": "all directional enemy frames + gorilla boss cycle"
+      },
+      {
+        "atlas": "explosion",
+        "contents": ["e1.png..e25.png"],
+        "rationale": "single 25-frame sequence, trim-aware atlas"
+      },
+      {
+        "atlas": "thrust",
+        "contents": ["b14.png", "b15.png", "b16.png"],
+        "rationale": "tiny 3-frame loop"
+      },
+      {
+        "atlas": "celestial",
+        "contents": ["sun.png", "earth.png", "mars.png", "venus.png", "mercury.png", "jupiter.png", "saturn.png", "uranus.png", "neptune.png"],
+        "rationale": "background bodies; saturn keeps wide aspect"
+      }
+    ],
+    "loose": ["back.jpg (convert to WebP)", "title.png", "blackhole.png (downscaled)", "joystick_background.png", "pausefloat.png"],
+    "drop": ["all sprites/unused/*", "drawable/b1-b13", "drawable/b17-b20", "drawable-v24/ic_launcher_foreground.xml (stock)", "ic_launcher_round mipmaps (dupes)"],
+    "phaserAnimations": [
+      { "key": "gorilla_idle", "atlas": "enemies", "frames": ["gorilla.png","gorillat1l.png","gorillat2r.png","gorillar.png"], "frameRate": 1.78, "repeat": -1, "notes": "matches 2250ms cycle" },
+      { "key": "explosion",    "atlas": "explosion", "framePrefix": "e", "start": 1, "end": 25, "frameRate": 30, "repeat": 0 },
+      { "key": "thrust",       "atlas": "thrust", "framePrefix": "b", "start": 14, "end": 16, "frameRate": 30, "repeat": 0 }
+    ]
+  }
+}

@@ -1,0 +1,194 @@
+{
+  "$schema": "sha12-index.schema (informal)",
+  "meta": {
+    "root": "public/assets/sprites/legacy",
+    "algo": "sha256[0:12]",
+    "fileCount": 46
+  },
+  "files": {
+    "celestial/back.jpg": {
+      "sha12": "b8b63987526a",
+      "bytes": 585159
+    },
+    "collectibles/banana.png": {
+      "sha12": "9248697d9ee3",
+      "bytes": 18873
+    },
+    "collectibles/rb.png": {
+      "sha12": "6391d180b8c8",
+      "bytes": 18851
+    },
+    "enemies/enemy.png": {
+      "sha12": "3814029a2b79",
+      "bytes": 34556
+    },
+    "enemies/enemyb.png": {
+      "sha12": "1c1874a032cd",
+      "bytes": 37834
+    },
+    "enemies/enemyb1.png": {
+      "sha12": "541a95021bab",
+      "bytes": 37592
+    },
+    "enemies/enemyr.png": {
+      "sha12": "e006ae425b12",
+      "bytes": 34697
+    },
+    "enemies/enemys1.png": {
+      "sha12": "6b623832d1f4",
+      "bytes": 24015
+    },
+    "enemies/enemysr.png": {
+      "sha12": "8061ae7b8bfb",
+      "bytes": 24058
+    },
+    "enemies/gorilla.png": {
+      "sha12": "f2d178851787",
+      "bytes": 54527
+    },
+    "enemies/gorillar.png": {
+      "sha12": "b3ea1db0ba18",
+      "bytes": 61012
+    },
+    "enemies/gorillat1l.png": {
+      "sha12": "4951ce953db3",
+      "bytes": 70245
+    },
+    "enemies/gorillat2r.png": {
+      "sha12": "273f52a326fb",
+      "bytes": 54308
+    },
+    "explosion/e1.png": {
+      "sha12": "da7da0e3d52d",
+      "bytes": 1932
+    },
+    "explosion/e10.png": {
+      "sha12": "92fd5dd22b8e",
+      "bytes": 4052
+    },
+    "explosion/e11.png": {
+      "sha12": "a61a58cd3d08",
+      "bytes": 4079
+    },
+    "explosion/e12.png": {
+      "sha12": "7a33995aeeb3",
+      "bytes": 4102
+    },
+    "explosion/e13.png": {
+      "sha12": "d13d25521737",
+      "bytes": 4119
+    },
+    "explosion/e14.png": {
+      "sha12": "6db8de5befe3",
+      "bytes": 4091
+    },
+    "explosion/e15.png": {
+      "sha12": "9b8afc186cec",
+      "bytes": 4035
+    },
+    "explosion/e16.png": {
+      "sha12": "fb8382e45db1",
+      "bytes": 4058
+    },
+    "explosion/e17.png": {
+      "sha12": "b2a3bdcf2d71",
+      "bytes": 4062
+    },
+    "explosion/e18.png": {
+      "sha12": "464c1f44029f",
+      "bytes": 3933
+    },
+    "explosion/e19.png": {
+      "sha12": "1f799509cd14",
+      "bytes": 3945
+    },
+    "explosion/e2.png": {
+      "sha12": "a31091b9262a",
+      "bytes": 2383
+    },
+    "explosion/e20.png": {
+      "sha12": "b321a5269575",
+      "bytes": 3791
+    },
+    "explosion/e21.png": {
+      "sha12": "d7671c8a0084",
+      "bytes": 3541
+    },
+    "explosion/e22.png": {
+      "sha12": "5d97f1de3ab4",
+      "bytes": 2967
+    },
+    "explosion/e23.png": {
+      "sha12": "086db3ea9ad5",
+      "bytes": 2582
+    },
+    "explosion/e24.png": {
+      "sha12": "97dfa3ef3542",
+      "bytes": 2053
+    },
+    "explosion/e25.png": {
+      "sha12": "9de152cf8e7e",
+      "bytes": 1113
+    },
+    "explosion/e3.png": {
+      "sha12": "e2571e53fd32",
+      "bytes": 2808
+    },
+    "explosion/e4.png": {
+      "sha12": "fef05ba34307",
+      "bytes": 3109
+    },
+    "explosion/e5.png": {
+      "sha12": "ae0a38d2c674",
+      "bytes": 3396
+    },
+    "explosion/e6.png": {
+      "sha12": "85c9368dace9",
+      "bytes": 3602
+    },
+    "explosion/e7.png": {
+      "sha12": "537690478186",
+      "bytes": 3773
+    },
+    "explosion/e8.png": {
+      "sha12": "22de9b4b4f07",
+      "bytes": 3871
+    },
+    "explosion/e9.png": {
+      "sha12": "ed677858da60",
+      "bytes": 4013
+    },
+    "fx/blackhole.png": {
+      "sha12": "db3a64aad0ec",
+      "bytes": 2620457
+    },
+    "player/player.png": {
+      "sha12": "07e992b39908",
+      "bytes": 31054
+    },
+    "projectiles/bomb.png": {
+      "sha12": "2a0117f691eb",
+      "bytes": 2360
+    },
+    "projectiles/bullet.png": {
+      "sha12": "4a144d57ed22",
+      "bytes": 4315
+    },
+    "projectiles/enemybullet.png": {
+      "sha12": "7126fd9710c8",
+      "bytes": 4049
+    },
+    "thrust/b14.png": {
+      "sha12": "02b28c1ff68e",
+      "bytes": 1668
+    },
+    "thrust/b15.png": {
+      "sha12": "d82d8eed4c99",
+      "bytes": 1760
+    },
+    "thrust/b16.png": {
+      "sha12": "06e350374981",
+      "bytes": 1601
+    }
+  }
+}

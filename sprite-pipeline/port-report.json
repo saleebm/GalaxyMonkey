@@ -1,0 +1,524 @@
+{
+  "$schema": "port-report.schema (informal)",
+  "meta": {
+    "sourceRoot": "public/assets/sprites/legacy",
+    "outputRoot": "tools/sprite-pipeline/normalized"
+  },
+  "budgets": {
+    "fx/blackhole.webp": {
+      "maxDim": 512,
+      "maxBytes": 102400
+    },
+    "celestial/back.webp": {
+      "maxBytes": 204800
+    }
+  },
+  "operations": [
+    {
+      "kind": "webp",
+      "inputRel": "celestial/back.jpg",
+      "outputRel": "celestial/back.webp",
+      "bytesBefore": 585159,
+      "bytesAfter": 197908,
+      "reduction": 0.6617876508777956,
+      "shaBefore": "b8b63987526a",
+      "shaAfter": "4af7dbf6aa54",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "collectibles/banana.png",
+      "outputRel": "collectibles/banana.png",
+      "bytesBefore": 18873,
+      "bytesAfter": 18873,
+      "reduction": 0,
+      "shaBefore": "9248697d9ee3",
+      "shaAfter": "9248697d9ee3",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "collectibles/rb.png",
+      "outputRel": "collectibles/rb.png",
+      "bytesBefore": 18851,
+      "bytesAfter": 18851,
+      "reduction": 0,
+      "shaBefore": "6391d180b8c8",
+      "shaAfter": "6391d180b8c8",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "enemies/gorilla.png",
+      "outputRel": "enemies/gorilla.png",
+      "bytesBefore": 54527,
+      "bytesAfter": 54527,
+      "reduction": 0,
+      "shaBefore": "f2d178851787",
+      "shaAfter": "f2d178851787",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "enemies/gorillar.png",
+      "outputRel": "enemies/gorillar.png",
+      "bytesBefore": 61012,
+      "bytesAfter": 61012,
+      "reduction": 0,
+      "shaBefore": "b3ea1db0ba18",
+      "shaAfter": "b3ea1db0ba18",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "enemies/gorillat1l.png",
+      "outputRel": "enemies/gorillat1l.png",
+      "bytesBefore": 70245,
+      "bytesAfter": 70245,
+      "reduction": 0,
+      "shaBefore": "4951ce953db3",
+      "shaAfter": "4951ce953db3",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "enemies/gorillat2r.png",
+      "outputRel": "enemies/gorillat2r.png",
+      "bytesBefore": 54308,
+      "bytesAfter": 54308,
+      "reduction": 0,
+      "shaBefore": "273f52a326fb",
+      "shaAfter": "273f52a326fb",
+      "skipped": true
+    },
+    {
+      "kind": "rename",
+      "inputRel": "enemies/enemy.png",
+      "outputRel": "enemies/preppy_left.png",
+      "bytesBefore": 34556,
+      "bytesAfter": 34556,
+      "reduction": 0,
+      "shaBefore": "3814029a2b79",
+      "shaAfter": "3814029a2b79",
+      "skipped": true
+    },
+    {
+      "kind": "rename",
+      "inputRel": "enemies/enemyr.png",
+      "outputRel": "enemies/preppy_right.png",
+      "bytesBefore": 34697,
+      "bytesAfter": 34697,
+      "reduction": 0,
+      "shaBefore": "e006ae425b12",
+      "shaAfter": "e006ae425b12",
+      "skipped": true
+    },
+    {
+      "kind": "rename",
+      "inputRel": "enemies/enemys1.png",
+      "outputRel": "enemies/shady_left.png",
+      "bytesBefore": 24015,
+      "bytesAfter": 24015,
+      "reduction": 0,
+      "shaBefore": "6b623832d1f4",
+      "shaAfter": "6b623832d1f4",
+      "skipped": true
+    },
+    {
+      "kind": "rename",
+      "inputRel": "enemies/enemysr.png",
+      "outputRel": "enemies/shady_right.png",
+      "bytesBefore": 24058,
+      "bytesAfter": 24058,
+      "reduction": 0,
+      "shaBefore": "8061ae7b8bfb",
+      "shaAfter": "8061ae7b8bfb",
+      "skipped": true
+    },
+    {
+      "kind": "rename",
+      "inputRel": "enemies/enemyb.png",
+      "outputRel": "enemies/white_left.png",
+      "bytesBefore": 37834,
+      "bytesAfter": 37834,
+      "reduction": 0,
+      "shaBefore": "1c1874a032cd",
+      "shaAfter": "1c1874a032cd",
+      "skipped": true
+    },
+    {
+      "kind": "rename",
+      "inputRel": "enemies/enemyb1.png",
+      "outputRel": "enemies/white_right.png",
+      "bytesBefore": 37592,
+      "bytesAfter": 37592,
+      "reduction": 0,
+      "shaBefore": "541a95021bab",
+      "shaAfter": "541a95021bab",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e1.png",
+      "outputRel": "explosion/e1.png",
+      "bytesBefore": 1932,
+      "bytesAfter": 1932,
+      "reduction": 0,
+      "shaBefore": "da7da0e3d52d",
+      "shaAfter": "da7da0e3d52d",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e10.png",
+      "outputRel": "explosion/e10.png",
+      "bytesBefore": 4052,
+      "bytesAfter": 4052,
+      "reduction": 0,
+      "shaBefore": "92fd5dd22b8e",
+      "shaAfter": "92fd5dd22b8e",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e11.png",
+      "outputRel": "explosion/e11.png",
+      "bytesBefore": 4079,
+      "bytesAfter": 4079,
+      "reduction": 0,
+      "shaBefore": "a61a58cd3d08",
+      "shaAfter": "a61a58cd3d08",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e12.png",
+      "outputRel": "explosion/e12.png",
+      "bytesBefore": 4102,
+      "bytesAfter": 4102,
+      "reduction": 0,
+      "shaBefore": "7a33995aeeb3",
+      "shaAfter": "7a33995aeeb3",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e13.png",
+      "outputRel": "explosion/e13.png",
+      "bytesBefore": 4119,
+      "bytesAfter": 4119,
+      "reduction": 0,
+      "shaBefore": "d13d25521737",
+      "shaAfter": "d13d25521737",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e14.png",
+      "outputRel": "explosion/e14.png",
+      "bytesBefore": 4091,
+      "bytesAfter": 4091,
+      "reduction": 0,
+      "shaBefore": "6db8de5befe3",
+      "shaAfter": "6db8de5befe3",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e15.png",
+      "outputRel": "explosion/e15.png",
+      "bytesBefore": 4035,
+      "bytesAfter": 4035,
+      "reduction": 0,
+      "shaBefore": "9b8afc186cec",
+      "shaAfter": "9b8afc186cec",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e16.png",
+      "outputRel": "explosion/e16.png",
+      "bytesBefore": 4058,
+      "bytesAfter": 4058,
+      "reduction": 0,
+      "shaBefore": "fb8382e45db1",
+      "shaAfter": "fb8382e45db1",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e17.png",
+      "outputRel": "explosion/e17.png",
+      "bytesBefore": 4062,
+      "bytesAfter": 4062,
+      "reduction": 0,
+      "shaBefore": "b2a3bdcf2d71",
+      "shaAfter": "b2a3bdcf2d71",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e18.png",
+      "outputRel": "explosion/e18.png",
+      "bytesBefore": 3933,
+      "bytesAfter": 3933,
+      "reduction": 0,
+      "shaBefore": "464c1f44029f",
+      "shaAfter": "464c1f44029f",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e19.png",
+      "outputRel": "explosion/e19.png",
+      "bytesBefore": 3945,
+      "bytesAfter": 3945,
+      "reduction": 0,
+      "shaBefore": "1f799509cd14",
+      "shaAfter": "1f799509cd14",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e2.png",
+      "outputRel": "explosion/e2.png",
+      "bytesBefore": 2383,
+      "bytesAfter": 2383,
+      "reduction": 0,
+      "shaBefore": "a31091b9262a",
+      "shaAfter": "a31091b9262a",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e20.png",
+      "outputRel": "explosion/e20.png",
+      "bytesBefore": 3791,
+      "bytesAfter": 3791,
+      "reduction": 0,
+      "shaBefore": "b321a5269575",
+      "shaAfter": "b321a5269575",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e21.png",
+      "outputRel": "explosion/e21.png",
+      "bytesBefore": 3541,
+      "bytesAfter": 3541,
+      "reduction": 0,
+      "shaBefore": "d7671c8a0084",
+      "shaAfter": "d7671c8a0084",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e22.png",
+      "outputRel": "explosion/e22.png",
+      "bytesBefore": 2967,
+      "bytesAfter": 2967,
+      "reduction": 0,
+      "shaBefore": "5d97f1de3ab4",
+      "shaAfter": "5d97f1de3ab4",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e23.png",
+      "outputRel": "explosion/e23.png",
+      "bytesBefore": 2582,
+      "bytesAfter": 2582,
+      "reduction": 0,
+      "shaBefore": "086db3ea9ad5",
+      "shaAfter": "086db3ea9ad5",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e24.png",
+      "outputRel": "explosion/e24.png",
+      "bytesBefore": 2053,
+      "bytesAfter": 2053,
+      "reduction": 0,
+      "shaBefore": "97dfa3ef3542",
+      "shaAfter": "97dfa3ef3542",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e25.png",
+      "outputRel": "explosion/e25.png",
+      "bytesBefore": 1113,
+      "bytesAfter": 1113,
+      "reduction": 0,
+      "shaBefore": "9de152cf8e7e",
+      "shaAfter": "9de152cf8e7e",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e3.png",
+      "outputRel": "explosion/e3.png",
+      "bytesBefore": 2808,
+      "bytesAfter": 2808,
+      "reduction": 0,
+      "shaBefore": "e2571e53fd32",
+      "shaAfter": "e2571e53fd32",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e4.png",
+      "outputRel": "explosion/e4.png",
+      "bytesBefore": 3109,
+      "bytesAfter": 3109,
+      "reduction": 0,
+      "shaBefore": "fef05ba34307",
+      "shaAfter": "fef05ba34307",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e5.png",
+      "outputRel": "explosion/e5.png",
+      "bytesBefore": 3396,
+      "bytesAfter": 3396,
+      "reduction": 0,
+      "shaBefore": "ae0a38d2c674",
+      "shaAfter": "ae0a38d2c674",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e6.png",
+      "outputRel": "explosion/e6.png",
+      "bytesBefore": 3602,
+      "bytesAfter": 3602,
+      "reduction": 0,
+      "shaBefore": "85c9368dace9",
+      "shaAfter": "85c9368dace9",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e7.png",
+      "outputRel": "explosion/e7.png",
+      "bytesBefore": 3773,
+      "bytesAfter": 3773,
+      "reduction": 0,
+      "shaBefore": "537690478186",
+      "shaAfter": "537690478186",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e8.png",
+      "outputRel": "explosion/e8.png",
+      "bytesBefore": 3871,
+      "bytesAfter": 3871,
+      "reduction": 0,
+      "shaBefore": "22de9b4b4f07",
+      "shaAfter": "22de9b4b4f07",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "explosion/e9.png",
+      "outputRel": "explosion/e9.png",
+      "bytesBefore": 4013,
+      "bytesAfter": 4013,
+      "reduction": 0,
+      "shaBefore": "ed677858da60",
+      "shaAfter": "ed677858da60",
+      "skipped": true
+    },
+    {
+      "kind": "resize-webp",
+      "inputRel": "fx/blackhole.png",
+      "outputRel": "fx/blackhole.webp",
+      "bytesBefore": 2620457,
+      "bytesAfter": 38552,
+      "reduction": 0.9852880623494299,
+      "shaBefore": "db3a64aad0ec",
+      "shaAfter": "dfe875c986f7",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "player/player.png",
+      "outputRel": "player/player.png",
+      "bytesBefore": 31054,
+      "bytesAfter": 31054,
+      "reduction": 0,
+      "shaBefore": "07e992b39908",
+      "shaAfter": "07e992b39908",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "projectiles/bomb.png",
+      "outputRel": "projectiles/bomb.png",
+      "bytesBefore": 2360,
+      "bytesAfter": 2360,
+      "reduction": 0,
+      "shaBefore": "2a0117f691eb",
+      "shaAfter": "2a0117f691eb",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "projectiles/bullet.png",
+      "outputRel": "projectiles/bullet.png",
+      "bytesBefore": 4315,
+      "bytesAfter": 4315,
+      "reduction": 0,
+      "shaBefore": "4a144d57ed22",
+      "shaAfter": "4a144d57ed22",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "projectiles/enemybullet.png",
+      "outputRel": "projectiles/enemybullet.png",
+      "bytesBefore": 4049,
+      "bytesAfter": 4049,
+      "reduction": 0,
+      "shaBefore": "7126fd9710c8",
+      "shaAfter": "7126fd9710c8",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "thrust/b14.png",
+      "outputRel": "thrust/b14.png",
+      "bytesBefore": 1668,
+      "bytesAfter": 1668,
+      "reduction": 0,
+      "shaBefore": "02b28c1ff68e",
+      "shaAfter": "02b28c1ff68e",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "thrust/b15.png",
+      "outputRel": "thrust/b15.png",
+      "bytesBefore": 1760,
+      "bytesAfter": 1760,
+      "reduction": 0,
+      "shaBefore": "d82d8eed4c99",
+      "shaAfter": "d82d8eed4c99",
+      "skipped": true
+    },
+    {
+      "kind": "passthrough",
+      "inputRel": "thrust/b16.png",
+      "outputRel": "thrust/b16.png",
+      "bytesBefore": 1601,
+      "bytesAfter": 1601,
+      "reduction": 0,
+      "shaBefore": "06e350374981",
+      "shaAfter": "06e350374981",
+      "skipped": true
+    }
+  ]
+}

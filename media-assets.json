@@ -1,0 +1,25 @@
+{
+  "notes": "Manifest of generated audio assets shipped under GalaxyMonkey/Sounds/. Generated via ElevenLabs sound-generation and music endpoints. Convert mp3 → caf with `afconvert -f caff -d aac`.",
+  "fields": {
+    "filename": "Bundle filename under GalaxyMonkey/Sounds/.",
+    "kind": "sfx | music",
+    "source": "Generation source: elevenlabs_sfx | elevenlabs_music | external.",
+    "prompt": "Generation prompt (sfx) or description (music).",
+    "duration_seconds": "Generation duration parameter; null = auto.",
+    "loops": "True if intended to loop (background music)."
+  },
+  "assets": [
+    { "filename": "shot.caf",        "kind": "sfx",   "source": "elevenlabs_sfx",   "prompt": "Short crisp laser blaster pew, sci-fi arcade, no echo", "duration_seconds": 0.5 },
+    { "filename": "enemy_shot.caf",  "kind": "sfx",   "source": "elevenlabs_sfx",   "prompt": "Lower-pitched enemy laser bolt, sci-fi arcade, short and dry", "duration_seconds": 0.5 },
+    { "filename": "explosion.caf",   "kind": "sfx",   "source": "elevenlabs_sfx",   "prompt": "Punchy retro arcade explosion, short pop with brief crackle, no debris tail", "duration_seconds": 0.6 },
+    { "filename": "player_hit.caf",  "kind": "sfx",   "source": "elevenlabs_sfx",   "prompt": "Short low metallic clang impact with subtle shield zap, no music", "duration_seconds": 0.5 },
+    { "filename": "game_over.caf",   "kind": "sfx",   "source": "elevenlabs_sfx",   "prompt": "Sad arcade game-over sting, short descending three-tone, retro 8-bit influenced", "duration_seconds": 1.6 },
+    { "filename": "ui_tap.caf",      "kind": "sfx",   "source": "elevenlabs_sfx",   "prompt": "Short bright UI tap blip, single soft beep", "duration_seconds": 0.5 },
+    { "filename": "bg_music.caf",    "kind": "music", "source": "elevenlabs_music", "prompt": "Driving 90s arcade space shooter background loop, mid-tempo electronic synth bass with light percussion, energetic but loopable, no vocals, no big drops, seamless arcade groove", "duration_seconds": 30, "loops": true }
+  ],
+  "todo": [
+    "Generate wave_start.caf and pickup.caf SFX once enemy-wave system and collectibles exist.",
+    "Generate boss_intro/boss_loop music variants for gorilla encounters.",
+    "Tune master volumes once SFX play in context."
+  ]
+}

@@ -1,0 +1,521 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0FC5F5117C2E0CD93BE684EF /* explosion.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0E55F03B7E70C6E166E8A3D5 /* explosion.caf */; };
+		1249886DD5D0D3DB8C8312C8 /* Starfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BED35E1E661168D6646FBD4 /* Starfield.swift */; };
+		124C3896FE2C5B186CDDBC00 /* bg_music.caf in Resources */ = {isa = PBXBuildFile; fileRef = DFDF108FDBDB77360239BB20 /* bg_music.caf */; };
+		130ACE51CB2A763A123896CF /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2325278428DF1450FBB2B8E6 /* Player.swift */; };
+		2392B330C70EDC55F1D4B35B /* enemy_shot.caf in Resources */ = {isa = PBXBuildFile; fileRef = 04154B18FD993EC4CF5D6C07 /* enemy_shot.caf */; };
+		27C92E8CF24D41E647669D89 /* GalaxyMonkeyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E289E86CCD802D3C57405CF /* GalaxyMonkeyUITests.swift */; };
+		2BDA22CCC0151B9A5C6D06C7 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F183BE6846ADD4A05D2A1F0 /* GameScene.swift */; };
+		4340694946436C8ACF63B67F /* VirtualJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2614DEBC5FB92BADBB050642 /* VirtualJoystick.swift */; };
+		462F399E616C9985A7044890 /* HUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */; };
+		4ABCA5194F2CC8DF2ACEFD9C /* ProjectileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6474A750B95DA5BA1517AB /* ProjectileSystem.swift */; };
+		59F889079167DE478A7929E0 /* game_over.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9B0A4474AA7D174CC02C290A /* game_over.caf */; };
+		5F8480D49C35F42861846CB4 /* Tuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3904675D779ADF1B94AAFED2 /* Tuning.swift */; };
+		6628A836BB5AC1B6E19E32CE /* GalaxyMonkeyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC80ED28CC58A5EA76EE1EAE /* GalaxyMonkeyApp.swift */; };
+		6A245296657074964B81146D /* EnemySystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A393FA1855864FDE483BCA0E /* EnemySystem.swift */; };
+		6E6BCC805297FE6CF14F2EEF /* EnemyType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC7ABFD0E72759D4D0DA65F /* EnemyType.swift */; };
+		7071011ED9F906DB3A5F566F /* player_hit.caf in Resources */ = {isa = PBXBuildFile; fileRef = AA4DDED65343BD47F14F16F3 /* player_hit.caf */; };
+		78BF4A2E50302BE467A34942 /* AudioController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA0A66DE491A42923CFAC32 /* AudioController.swift */; };
+		84910AC65F85F94C9D035D90 /* GameControllerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */; };
+		950C00EB38E9BA7866892837 /* shot.caf in Resources */ = {isa = PBXBuildFile; fileRef = F7BB4CBFC51EFDB552A09A67 /* shot.caf */; };
+		A07362542A9B2432C7B7EE19 /* ui_tap.caf in Resources */ = {isa = PBXBuildFile; fileRef = 115F96E1FDF2F557D8DD0B49 /* ui_tap.caf */; };
+		A4E4528DF224945AC99B3B53 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D588094A391E920CFA53A23C /* LaunchScreen.storyboard */; };
+		BA67EC93BD67465F2E8C219B /* SpriteCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8966079BA34B85E3103F59 /* SpriteCatalog.swift */; };
+		DEC90C190EC13A2A09DF0C9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D66BEA9382D547C5A2005DF /* Assets.xcassets */; };
+		E70DBDB3BA4151F67E7D2E95 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B247E4FA394F19DC27A5C3D /* ContentView.swift */; };
+		F26018384314630E3CE5DF87 /* AnimationCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF6A8318DC3405611127A50 /* AnimationCatalog.swift */; };
+		F3D2AE67A0F261EA3F1A3657 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 583E831FF7EBB45EB05B82D2 /* PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		20763EAAD1BF89C1967B96EC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E07B1E7E7C52A346BC5BBB9E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1257C21EFC83607453187B53;
+			remoteInfo = GalaxyMonkey;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		04154B18FD993EC4CF5D6C07 /* enemy_shot.caf */ = {isa = PBXFileReference; path = enemy_shot.caf; sourceTree = "<group>"; };
+		0BED35E1E661168D6646FBD4 /* Starfield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Starfield.swift; sourceTree = "<group>"; };
+		0E55F03B7E70C6E166E8A3D5 /* explosion.caf */ = {isa = PBXFileReference; path = explosion.caf; sourceTree = "<group>"; };
+		0FC7ABFD0E72759D4D0DA65F /* EnemyType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyType.swift; sourceTree = "<group>"; };
+		115F96E1FDF2F557D8DD0B49 /* ui_tap.caf */ = {isa = PBXFileReference; path = ui_tap.caf; sourceTree = "<group>"; };
+		1B247E4FA394F19DC27A5C3D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1D6474A750B95DA5BA1517AB /* ProjectileSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectileSystem.swift; sourceTree = "<group>"; };
+		2325278428DF1450FBB2B8E6 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
+		2614DEBC5FB92BADBB050642 /* VirtualJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualJoystick.swift; sourceTree = "<group>"; };
+		2F183BE6846ADD4A05D2A1F0 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
+		3904675D779ADF1B94AAFED2 /* Tuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tuning.swift; sourceTree = "<group>"; };
+		3E289E86CCD802D3C57405CF /* GalaxyMonkeyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalaxyMonkeyUITests.swift; sourceTree = "<group>"; };
+		583E831FF7EBB45EB05B82D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5FA0A66DE491A42923CFAC32 /* AudioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioController.swift; sourceTree = "<group>"; };
+		66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
+		6D66BEA9382D547C5A2005DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerInput.swift; sourceTree = "<group>"; };
+		8C8966079BA34B85E3103F59 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
+		9B0A4474AA7D174CC02C290A /* game_over.caf */ = {isa = PBXFileReference; path = game_over.caf; sourceTree = "<group>"; };
+		A393FA1855864FDE483BCA0E /* EnemySystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemySystem.swift; sourceTree = "<group>"; };
+		AA4DDED65343BD47F14F16F3 /* player_hit.caf */ = {isa = PBXFileReference; path = player_hit.caf; sourceTree = "<group>"; };
+		ACF6A8318DC3405611127A50 /* AnimationCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationCatalog.swift; sourceTree = "<group>"; };
+		AF06D928262E8F044C4F6222 /* GalaxyMonkeyUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GalaxyMonkeyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BAA3D1852D87CBCEA701B04C /* GalaxyMonkey.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GalaxyMonkey.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC80ED28CC58A5EA76EE1EAE /* GalaxyMonkeyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalaxyMonkeyApp.swift; sourceTree = "<group>"; };
+		D588094A391E920CFA53A23C /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		DFDF108FDBDB77360239BB20 /* bg_music.caf */ = {isa = PBXFileReference; path = bg_music.caf; sourceTree = "<group>"; };
+		ECF1D7F03352B5FD42390533 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		F7BB4CBFC51EFDB552A09A67 /* shot.caf */ = {isa = PBXFileReference; path = shot.caf; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2FB6CF099D80DC5E1F462648 = {
+			isa = PBXGroup;
+			children = (
+				B0CCE3AACA253AC6E1B8DB02 /* GalaxyMonkey */,
+				C0594368CC8380FC46EBC408 /* GalaxyMonkeyUITests */,
+				EE33B4CF49CB3D52EA4B6608 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		66B5E45E483962B450A23074 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				ECF1D7F03352B5FD42390533 /* .gitkeep */,
+				DFDF108FDBDB77360239BB20 /* bg_music.caf */,
+				04154B18FD993EC4CF5D6C07 /* enemy_shot.caf */,
+				0E55F03B7E70C6E166E8A3D5 /* explosion.caf */,
+				9B0A4474AA7D174CC02C290A /* game_over.caf */,
+				AA4DDED65343BD47F14F16F3 /* player_hit.caf */,
+				F7BB4CBFC51EFDB552A09A67 /* shot.caf */,
+				115F96E1FDF2F557D8DD0B49 /* ui_tap.caf */,
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
+		B0CCE3AACA253AC6E1B8DB02 /* GalaxyMonkey */ = {
+			isa = PBXGroup;
+			children = (
+				ACF6A8318DC3405611127A50 /* AnimationCatalog.swift */,
+				6D66BEA9382D547C5A2005DF /* Assets.xcassets */,
+				5FA0A66DE491A42923CFAC32 /* AudioController.swift */,
+				1B247E4FA394F19DC27A5C3D /* ContentView.swift */,
+				A393FA1855864FDE483BCA0E /* EnemySystem.swift */,
+				0FC7ABFD0E72759D4D0DA65F /* EnemyType.swift */,
+				CC80ED28CC58A5EA76EE1EAE /* GalaxyMonkeyApp.swift */,
+				77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */,
+				2F183BE6846ADD4A05D2A1F0 /* GameScene.swift */,
+				66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */,
+				D588094A391E920CFA53A23C /* LaunchScreen.storyboard */,
+				2325278428DF1450FBB2B8E6 /* Player.swift */,
+				583E831FF7EBB45EB05B82D2 /* PrivacyInfo.xcprivacy */,
+				1D6474A750B95DA5BA1517AB /* ProjectileSystem.swift */,
+				8C8966079BA34B85E3103F59 /* SpriteCatalog.swift */,
+				0BED35E1E661168D6646FBD4 /* Starfield.swift */,
+				3904675D779ADF1B94AAFED2 /* Tuning.swift */,
+				2614DEBC5FB92BADBB050642 /* VirtualJoystick.swift */,
+				66B5E45E483962B450A23074 /* Sounds */,
+			);
+			path = GalaxyMonkey;
+			sourceTree = "<group>";
+		};
+		C0594368CC8380FC46EBC408 /* GalaxyMonkeyUITests */ = {
+			isa = PBXGroup;
+			children = (
+				3E289E86CCD802D3C57405CF /* GalaxyMonkeyUITests.swift */,
+			);
+			path = GalaxyMonkeyUITests;
+			sourceTree = "<group>";
+		};
+		EE33B4CF49CB3D52EA4B6608 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BAA3D1852D87CBCEA701B04C /* GalaxyMonkey.app */,
+				AF06D928262E8F044C4F6222 /* GalaxyMonkeyUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1257C21EFC83607453187B53 /* GalaxyMonkey */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE39FEECE7C51E6A53908C89 /* Build configuration list for PBXNativeTarget "GalaxyMonkey" */;
+			buildPhases = (
+				F4E84BE3AA1CBED98FA9B397 /* Sources */,
+				B766820CC76CA83A718294BC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GalaxyMonkey;
+			packageProductDependencies = (
+			);
+			productName = GalaxyMonkey;
+			productReference = BAA3D1852D87CBCEA701B04C /* GalaxyMonkey.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9EA80B80595395482692B035 /* GalaxyMonkeyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E606F4FBF16CCD702BF33531 /* Build configuration list for PBXNativeTarget "GalaxyMonkeyUITests" */;
+			buildPhases = (
+				731D4D36A4ED63F4E59B5822 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6D910BE4FA1DB3DD0FBDBF05 /* PBXTargetDependency */,
+			);
+			name = GalaxyMonkeyUITests;
+			packageProductDependencies = (
+			);
+			productName = GalaxyMonkeyUITests;
+			productReference = AF06D928262E8F044C4F6222 /* GalaxyMonkeyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E07B1E7E7C52A346BC5BBB9E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					1257C21EFC83607453187B53 = {
+						DevelopmentTeam = L7U86T3YRV;
+						ProvisioningStyle = Automatic;
+					};
+					9EA80B80595395482692B035 = {
+						DevelopmentTeam = L7U86T3YRV;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 1257C21EFC83607453187B53;
+					};
+				};
+			};
+			buildConfigurationList = 58E47239B86CD30DE08F2FA8 /* Build configuration list for PBXProject "GalaxyMonkey" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 2FB6CF099D80DC5E1F462648;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EE33B4CF49CB3D52EA4B6608 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1257C21EFC83607453187B53 /* GalaxyMonkey */,
+				9EA80B80595395482692B035 /* GalaxyMonkeyUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B766820CC76CA83A718294BC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DEC90C190EC13A2A09DF0C9C /* Assets.xcassets in Resources */,
+				A4E4528DF224945AC99B3B53 /* LaunchScreen.storyboard in Resources */,
+				F3D2AE67A0F261EA3F1A3657 /* PrivacyInfo.xcprivacy in Resources */,
+				124C3896FE2C5B186CDDBC00 /* bg_music.caf in Resources */,
+				2392B330C70EDC55F1D4B35B /* enemy_shot.caf in Resources */,
+				0FC5F5117C2E0CD93BE684EF /* explosion.caf in Resources */,
+				59F889079167DE478A7929E0 /* game_over.caf in Resources */,
+				7071011ED9F906DB3A5F566F /* player_hit.caf in Resources */,
+				950C00EB38E9BA7866892837 /* shot.caf in Resources */,
+				A07362542A9B2432C7B7EE19 /* ui_tap.caf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		731D4D36A4ED63F4E59B5822 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27C92E8CF24D41E647669D89 /* GalaxyMonkeyUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4E84BE3AA1CBED98FA9B397 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F26018384314630E3CE5DF87 /* AnimationCatalog.swift in Sources */,
+				78BF4A2E50302BE467A34942 /* AudioController.swift in Sources */,
+				E70DBDB3BA4151F67E7D2E95 /* ContentView.swift in Sources */,
+				6A245296657074964B81146D /* EnemySystem.swift in Sources */,
+				6E6BCC805297FE6CF14F2EEF /* EnemyType.swift in Sources */,
+				6628A836BB5AC1B6E19E32CE /* GalaxyMonkeyApp.swift in Sources */,
+				84910AC65F85F94C9D035D90 /* GameControllerInput.swift in Sources */,
+				2BDA22CCC0151B9A5C6D06C7 /* GameScene.swift in Sources */,
+				462F399E616C9985A7044890 /* HUDController.swift in Sources */,
+				130ACE51CB2A763A123896CF /* Player.swift in Sources */,
+				4ABCA5194F2CC8DF2ACEFD9C /* ProjectileSystem.swift in Sources */,
+				BA67EC93BD67465F2E8C219B /* SpriteCatalog.swift in Sources */,
+				1249886DD5D0D3DB8C8312C8 /* Starfield.swift in Sources */,
+				5F8480D49C35F42861846CB4 /* Tuning.swift in Sources */,
+				4340694946436C8ACF63B67F /* VirtualJoystick.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6D910BE4FA1DB3DD0FBDBF05 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1257C21EFC83607453187B53 /* GalaxyMonkey */;
+			targetProxy = 20763EAAD1BF89C1967B96EC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1A4D4A41F15DA307DF826606 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.GalaxyMonkeyUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = GalaxyMonkey;
+			};
+			name = Release;
+		};
+		44C31EDFCBA0B6AE3B6202F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L7U86T3YRV;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		90675ABAC66CEB7664E84254 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.GalaxyMonkeyUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = GalaxyMonkey;
+			};
+			name = Debug;
+		};
+		92D47E820035D6EEF03CF3FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L7U86T3YRV;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B41CF38839480922673F20ED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = GalaxyMonkey/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.GalaxyMonkey;
+				PRODUCT_NAME = GalaxyMonkey;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		ED1357E5C74C826A25B0BB6F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = GalaxyMonkey/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.GalaxyMonkey;
+				PRODUCT_NAME = GalaxyMonkey;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		58E47239B86CD30DE08F2FA8 /* Build configuration list for PBXProject "GalaxyMonkey" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92D47E820035D6EEF03CF3FB /* Debug */,
+				44C31EDFCBA0B6AE3B6202F9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E606F4FBF16CCD702BF33531 /* Build configuration list for PBXNativeTarget "GalaxyMonkeyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				90675ABAC66CEB7664E84254 /* Debug */,
+				1A4D4A41F15DA307DF826606 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FE39FEECE7C51E6A53908C89 /* Build configuration list for PBXNativeTarget "GalaxyMonkey" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ED1357E5C74C826A25B0BB6F /* Debug */,
+				B41CF38839480922673F20ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E07B1E7E7C52A346BC5BBB9E /* Project object */;
+}
