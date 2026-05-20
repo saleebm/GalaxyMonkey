@@ -22,10 +22,14 @@ final class Player {
     private(set) var aimAngle: CGFloat = 0
     /// True while the right stick is engaged enough to fire.
     private(set) var isFiring: Bool = false
+    /// 0 = single shot, 1 = 2-line spread, 2 = 3-line spread (max). Bumped by
+    /// the golden-banana pickup, fully reset on hit or game reset.
+    private(set) var spreadLevel: Int = 0
 
     private var invulnRemaining: TimeInterval = 0
     private var blinkPhase: Double = 0
     private weak var scene: SKScene?
+    private let thrusterEmitter: SKEmitterNode
 
     var onLivesChanged: ((Int) -> Void)?
     var isAlive: Bool { lives > 0 }
@@ -49,6 +53,17 @@ final class Player {
         self.visual = body
         self.node = root
 
+        // Native-particle exhaust — parents off `body` so it inherits the
+        // L/R flip and aim-tilt, gives an always-on orange flame at the
+        // ship's rear even when stationary. targetNode = scene below detaches
+        // emitted particles into world space so they visibly trail behind
+        // the ship as it moves.
+        let emitter = ThrusterEmitter.make()
+        emitter.position = CGPoint(x: Tuning.VFX.thrustTailOffsetX, y: 0)
+        emitter.zPosition = Tuning.VFX.thrustZ + 0.5
+        body.addChild(emitter)
+        self.thrusterEmitter = emitter
+
         let pb = SKPhysicsBody(circleOfRadius: Tuning.Player.radius)
         pb.isDynamic = true
         pb.affectedByGravity = false
@@ -59,6 +74,7 @@ final class Player {
         root.physicsBody = pb
 
         scene.addChild(root)
+        emitter.targetNode = scene
     }
 
     func reset() {
@@ -68,6 +84,7 @@ final class Player {
         velocity = .zero
         aimAngle = 0
         isFiring = false
+        spreadLevel = 0
         visual.alpha = 1
         guard let scene else { return }
         node.position = CGPoint(x: scene.size.width / 2, y: scene.size.height / 2)
@@ -131,6 +148,24 @@ final class Player {
                 visual.alpha = 1
             }
         }
+
+        // Particle flame intensity scales with stick magnitude: always-on
+        // cruise base, dramatic burst on full input. Direction is inherited
+        // from `visual` via the emitter's local emissionAngle.
+        let stickMag = min(1.0, (moveStick.dx * moveStick.dx + moveStick.dy * moveStick.dy).squareRoot())
+        thrusterEmitter.particleBirthRate = 220 + 720 * stickMag
+        thrusterEmitter.particleSpeed = 200 + 240 * stickMag
+        thrusterEmitter.particleLifetime = 0.45 + 0.25 * stickMag
+    }
+
+    /// Called when a golden-banana pickup is collected. Returns true if the
+    /// spread level actually increased (false at max — caller still awards
+    /// the score bonus).
+    @discardableResult
+    func upgradeSpread() -> Bool {
+        guard spreadLevel < Tuning.Pickup.maxSpreadLevel else { return false }
+        spreadLevel += 1
+        return true
     }
 
     /// Called by GameScene on enemy contact. Returns true if damage was taken.
@@ -138,6 +173,7 @@ final class Player {
     func tryTakeHit() -> Bool {
         guard !isInvulnerable, isAlive else { return false }
         lives -= 1
+        spreadLevel = 0
         isInvulnerable = true
         invulnRemaining = Tuning.Player.invulnDuration
         blinkPhase = 0

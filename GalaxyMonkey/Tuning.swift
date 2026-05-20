@@ -31,10 +31,18 @@ enum Tuning {
         static let lifetime: TimeInterval = 1.4
         static let radius: CGFloat = 6
         static let poolSize: Int = 96
+        // Per-side angular offset for the golden-banana spread shot.
+        // Level 1 fires at ±offset; level 2 fires at 0 and ±2·offset.
+        static let spreadOffset: CGFloat = .pi / 24   // 7.5°
         // Gorilla bomb — slow, heavy, larger contact radius.
         static let bombSpeed: CGFloat = 280
         static let bombLifetime: TimeInterval = 3.0
         static let bombRadius: CGFloat = 16
+        // Enemy bullets — slowed and visually enlarged so the player can
+        // read incoming shots. Physics radius stays the pool default; only
+        // the rendered sprite scales up.
+        static let enemyBulletSpeedMul: CGFloat = 0.45
+        static let enemyBulletVisualRadius: CGFloat = 11
     }
 
     enum Enemy {
@@ -84,13 +92,77 @@ enum Tuning {
         // Banana shot is intentionally near-silent (~95% reduction).
         static let playerShotVolume: Float = 0.05
     }
+
+    enum Pickup {
+        // Drop probability per enemy kill (rolled in PickupSystem.trySpawnGoldenBanana).
+        static let dropChance: Double = 0.08            // ~1 in 12 kills
+        static let lifetime: TimeInterval = 8.0
+        static let radius: CGFloat = 14
+        static let spriteTargetMax: CGFloat = 36
+        static let bobAmplitude: CGFloat = 4
+        static let bobPeriod: TimeInterval = 1.2
+        static let scoreBonus: Int = 500
+        // Player.spreadLevel is clamped to this. 0 = single, 1 = 2-line, 2 = 3-line.
+        static let maxSpreadLevel: Int = 2
+    }
+
+    enum VFX {
+        // Screen shake — per-frame decay, max offset, and per-event intensities.
+        static let shakeDecay: CGFloat = 0.86
+        static let shakeMaxOffset: CGFloat = 18
+        static let bombShakeIntensity: CGFloat = 14
+        static let playerHitShakeIntensity: CGFloat = 8
+        static let enemyKillShakeIntensity: CGFloat = 3
+
+        // Engine thrust plume (particle emitter — see ThrusterEmitter / Player).
+        // Z just below the player's body so the plume reads as exhaust.
+        static let thrustZ: CGFloat = -1
+        // Plume tail offset behind the ship's local +X axis.
+        static let thrustTailOffsetX: CGFloat = -22
+        // Scale relative to ship radius.
+        static let thrustScale: CGFloat = 1.4
+
+        // Muzzle flash.
+        static let muzzleFlashDuration: TimeInterval = 0.08
+        static let muzzleFlashScale: CGFloat = 0.6
+
+        // Damage flash (white tint on the ship body).
+        static let damageFlashDuration: TimeInterval = 0.12
+
+        // Bomb explosion (the 25-frame chunky sequence).
+        static let bombExplosionFrameDuration: TimeInterval = 1.0 / 30
+        // Visual size = Enemy.radius × this.
+        static let bombExplosionScale: CGFloat = 3.4
+
+        // Glow halo composited under explosions.
+        static let glowEnemyKillDuration: TimeInterval = 0.18
+        static let glowBombDuration: TimeInterval = 0.35
+        static let glowEnemyKillScale: CGFloat = 1.0
+        static let glowBombScale: CGFloat = 2.0
+
+        // Planet parallax — sits between starfield layer1 (z=-50, 0.06) and
+        // layer2 (z=-40, 0.18). Two depth bands.
+        static let planetParallaxFactors: [CGFloat] = [0.10, 0.14]
+        static let planetZPositions: [CGFloat] = [-48, -44]
+        // Number of planets per layer.
+        static let planetsPerLayer: Int = 2
+        // Texture display scale range (textures are ~200px; scene is ~390pt wide).
+        static let planetScaleMin: CGFloat = 0.18
+        static let planetScaleMax: CGFloat = 0.45
+        // Slow self-rotation period in seconds.
+        static let planetRotationPeriodMin: TimeInterval = 60
+        static let planetRotationPeriodMax: TimeInterval = 180
+    }
 }
 
 /// Physics category bitmasks for SKPhysicsContact wiring.
 struct Category {
-    static let none:    UInt32 = 0
-    static let player:  UInt32 = 1 << 0
-    static let enemy:   UInt32 = 1 << 1
-    static let bullet:  UInt32 = 1 << 2
-    static let pickup:  UInt32 = 1 << 3
+    static let none:        UInt32 = 0
+    static let player:      UInt32 = 1 << 0
+    static let enemy:       UInt32 = 1 << 1
+    /// Player-fired projectiles only. Enemy projectiles use `enemyBullet`
+    /// so friendly fire doesn't damage other enemies in flight path.
+    static let bullet:      UInt32 = 1 << 2
+    static let pickup:      UInt32 = 1 << 3
+    static let enemyBullet: UInt32 = 1 << 4
 }

@@ -35,27 +35,43 @@ final class ProjectileSystem {
     func updateBounds(_ rect: CGRect) { bounds = rect }
 
     /// Call every frame while the player is firing. Cooldown is internal.
-    /// Returns true if a bullet was actually spawned this call.
+    /// `spreadLevel` is the player's current weapon level (0 = single shot,
+    /// 1 = 2-line, 2 = 3-line). Returns true if at least one bullet was
+    /// spawned this call.
     @discardableResult
-    func tryFirePlayer(from position: CGPoint, angle: CGFloat, now: TimeInterval) -> Bool {
+    func tryFirePlayer(from position: CGPoint, angle: CGFloat,
+                       spreadLevel: Int, now: TimeInterval) -> Bool {
         if now - lastShotTime < Tuning.Projectile.fireInterval { return false }
         lastShotTime = now
-        fire(from: position, angle: angle,
-             category: Category.bullet, target: Category.enemy,
-             sprite: .bullet, fallbackColor: .yellow,
-             speed: Tuning.Projectile.speed,
-             radius: Tuning.Projectile.radius,
-             lifetime: Tuning.Projectile.lifetime)
+        for a in spreadAngles(base: angle, level: spreadLevel) {
+            fire(from: position, angle: a,
+                 category: Category.bullet, target: Category.enemy,
+                 sprite: .bullet, fallbackColor: .yellow,
+                 speed: Tuning.Projectile.speed,
+                 radius: Tuning.Projectile.radius,
+                 lifetime: Tuning.Projectile.lifetime)
+        }
         return true
     }
 
+    private func spreadAngles(base: CGFloat, level: Int) -> [CGFloat] {
+        let off = Tuning.Projectile.spreadOffset
+        switch level {
+        case 0: return [base]
+        case 1: return [base - off, base + off]
+        default: return [base - 2 * off, base, base + 2 * off]
+        }
+    }
+
     func fireEnemyBullet(from position: CGPoint, angle: CGFloat) {
+        // `radius` here drives only the rendered sprite scale — the pooled
+        // physics body keeps the default Projectile.radius.
         fire(from: position, angle: angle,
-             category: Category.bullet, target: Category.player,
+             category: Category.enemyBullet, target: Category.player,
              sprite: .enemyBullet,
              fallbackColor: UIColor(red: 1.0, green: 0.45, blue: 0.45, alpha: 1),
-             speed: Tuning.Projectile.speed * 0.75,    // enemy bullets a touch slower
-             radius: Tuning.Projectile.radius,
+             speed: Tuning.Projectile.speed * Tuning.Projectile.enemyBulletSpeedMul,
+             radius: Tuning.Projectile.enemyBulletVisualRadius,
              lifetime: Tuning.Projectile.lifetime)
     }
 
@@ -63,8 +79,9 @@ final class ProjectileSystem {
     /// because the bigger physics body would corrupt the bullet pool.
     func fireBomb(from position: CGPoint, angle: CGFloat) {
         let b = makeBullet(radius: Tuning.Projectile.bombRadius, isPoolable: false)
+        b.isBomb = true
         configureFiredBullet(b, position: position, angle: angle,
-                             category: Category.bullet, target: Category.player,
+                             category: Category.enemyBullet, target: Category.player,
                              sprite: .bomb,
                              fallbackColor: UIColor(red: 0.18, green: 0.18, blue: 0.22, alpha: 1),
                              speed: Tuning.Projectile.bombSpeed,
@@ -72,6 +89,15 @@ final class ProjectileSystem {
                              lifetime: Tuning.Projectile.bombLifetime)
         scene?.addChild(b.node)
         activeBullets.append(b)
+    }
+
+    /// Fires when a bomb's lifetime expires without hitting the player.
+    var onBombExpire: ((CGPoint) -> Void)?
+
+    /// Lookup helper for contact handlers: given an SKNode (from a contact
+    /// body), return the owning Bullet if any.
+    func findBullet(by node: SKNode) -> Bullet? {
+        activeBullets.first(where: { $0.node === node })
     }
 
     private func fire(from position: CGPoint, angle: CGFloat,
@@ -125,9 +151,16 @@ final class ProjectileSystem {
             b.node.position.x += b.velocity.dx * dtF
             b.node.position.y += b.velocity.dy * dtF
             let p = b.node.position
-            if b.remaining <= 0 ||
-                p.x < bounds.minX - 40 || p.x > bounds.maxX + 40 ||
-                p.y < bounds.minY - 40 || p.y > bounds.maxY + 40 {
+            let expired = b.remaining <= 0
+            let offscreen = p.x < bounds.minX - 40 || p.x > bounds.maxX + 40 ||
+                             p.y < bounds.minY - 40 || p.y > bounds.maxY + 40
+            if expired || offscreen {
+                // A bomb that runs out the clock should still detonate
+                // visually — an off-screen bomb is treated as a dud and
+                // recycled silently.
+                if b.isBomb && expired && !offscreen {
+                    onBombExpire?(p)
+                }
                 recycle(at: i)
                 continue
             }
@@ -181,6 +214,7 @@ final class ProjectileSystem {
         let isPoolable: Bool
         var velocity: CGVector = .zero
         var remaining: TimeInterval = 0
+        var isBomb: Bool = false
         init(node: SKNode, isPoolable: Bool) {
             self.node = node
             self.isPoolable = isPoolable

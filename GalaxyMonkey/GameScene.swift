@@ -15,11 +15,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var camNode: SKCameraNode!
 
     private var starfield: Starfield!
+    private var planetField: PlanetField!
     private var player: Player!
     private var enemies: EnemySystem!
     private var bullets: ProjectileSystem!
+    private var pickups: PickupSystem!
     private var hud: HUDController!
     private var audio: AudioController!
+    private var vfx: VFXPool!
 
     private let moveStick = VirtualJoystick(side: .left)
     private let aimStick  = VirtualJoystick(side: .right)
@@ -31,6 +34,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var isGameOver = false
     private var score: Int = 0 {
         didSet { hud?.setScore(score) }
+    }
+
+    /// Transient camera offset. Decays toward zero every frame.
+    private var shakeOffset: CGVector = .zero
+
+    // Resuming from pause must reset lastUpdateTime so the next frame's dt
+    // doesn't absorb the entire paused interval (which would spawn-flood
+    // enemies, expire every bullet, and teleport parallax in one tick).
+    override var isPaused: Bool {
+        didSet {
+            if oldValue && !isPaused {
+                lastUpdateTime = 0
+            }
+        }
     }
 
     // MARK: - Lifecycle
@@ -60,12 +77,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             addChild(bg)
         }
 
-        starfield = Starfield(scene: self)
+        starfield   = Starfield(scene: self)
+        planetField = PlanetField(scene: self)
         player    = Player(scene: self)
         enemies   = EnemySystem(scene: self)
         bullets   = ProjectileSystem(scene: self)
+        pickups   = PickupSystem(scene: self)
         hud       = HUDController(scene: self, initialBest: bestScore())
         audio     = AudioController(scene: self)
+        vfx       = VFXPool(scene: self)
         audio.listenerProvider = { [weak self] in
             self?.player.node.position ?? .zero
         }
@@ -83,8 +103,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             case .bomb:   self.bullets.fireBomb(from: origin, angle: angle)
             }
         }
+        bullets.onBombExpire = { [weak self] pos in
+            self?.detonateBomb(at: pos)
+        }
         enemies.updateBounds(CGRect(origin: .zero, size: size))
         bullets.updateBounds(CGRect(origin: .zero, size: size))
+        pickups.updateBounds(CGRect(origin: .zero, size: size))
         _ = inset
 
         // Joysticks live in scene space so the touch coordinates passed to
@@ -109,6 +133,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func willMove(from view: SKView) {
         NotificationCenter.default.removeObserver(self)
+    }
+
+    /// Called by ContentView when scenePhase drops out of `.active` (screen
+    /// lock, app switcher, Control Center, incoming call, etc.). Guard
+    /// mirrors the manual pause button so we don't pause the start prompt
+    /// or game-over overlay.
+    func applicationDidLoseFocus() {
+        guard isStarted, !isGameOver else { return }
+        isPaused = true
     }
 
     // MARK: - Input
@@ -198,16 +231,34 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if player.isFiring {
             let fired = bullets.tryFirePlayer(from: player.node.position,
                                               angle: player.aimAngle,
+                                              spreadLevel: player.spreadLevel,
                                               now: currentTime)
             if fired {
                 audio.play(.playerShot,
                            at: player.node.position,
                            baseVolume: Tuning.Audio.playerShotVolume)
+                vfx.spawnMuzzleFlash(at: player.node.position, angle: player.aimAngle)
             }
         }
         bullets.update(dt: dt)
+        pickups.update(dt: dt)
         enemies.update(dt: dt)
         starfield.update(dt: dt, playerVelocity: player.velocity)
+        planetField.update(dt: dt, playerVelocity: player.velocity)
+
+        // Apply + decay screen shake after world subsystems have ticked.
+        camNode.position = CGPoint(x: size.width / 2 + shakeOffset.dx,
+                                    y: size.height / 2 + shakeOffset.dy)
+        shakeOffset.dx *= Tuning.VFX.shakeDecay
+        shakeOffset.dy *= Tuning.VFX.shakeDecay
+    }
+
+    /// Kicks the camera in a random direction. Decays via `shakeDecay`.
+    func applyShake(_ intensity: CGFloat) {
+        let clamped = min(intensity, Tuning.VFX.shakeMaxOffset)
+        let angle = CGFloat.random(in: 0..<(2 * .pi))
+        shakeOffset.dx = cos(angle) * clamped
+        shakeOffset.dy = sin(angle) * clamped
     }
 
     // MARK: - Contact
@@ -231,8 +282,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                     score += s
                     audio.play(.explosion, at: pos)
                     spawnExplosion(at: pos)
+                    applyShake(Tuning.VFX.enemyKillShakeIntensity)
+                    vfx.spawnGlow(at: pos,
+                                  scale: Tuning.VFX.glowEnemyKillScale,
+                                  duration: Tuning.VFX.glowEnemyKillDuration)
                     let gen = UIImpactFeedbackGenerator(style: .medium)
                     gen.impactOccurred()
+                    pickups.trySpawnGoldenBanana(at: pos)
                 }
             }
             return
@@ -243,7 +299,45 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             if player.tryTakeHit() {
                 if let en = enemyNode { _ = enemies.killByNode(en) }
                 audio.play(.playerHit, at: player.node.position)
+                applyShake(Tuning.VFX.playerHitShakeIntensity)
+                vfx.spawnDamageFlash(target: player.visual)
                 if !player.isAlive { triggerGameOver() }
+            }
+            return
+        }
+
+        // Enemy projectiles (bullets + bombs) hitting the player. Enemy
+        // projectiles use Category.enemyBullet (separate from player bullets)
+        // so they don't damage other enemies in their flight path.
+        if mask == (Category.enemyBullet | Category.player) {
+            let bulletNode: SKNode? = a.categoryBitMask == Category.bullet ? a.node : b.node
+            guard let bn = bulletNode, let bullet = bullets.findBullet(by: bn) else { return }
+            let pos = bn.position
+            let wasBomb = bullet.isBomb
+            bullets.recycle(node: bn)
+            if wasBomb {
+                detonateBomb(at: pos)
+            }
+            if player.tryTakeHit() {
+                audio.play(.playerHit, at: player.node.position)
+                vfx.spawnDamageFlash(target: player.visual)
+                if !wasBomb {
+                    applyShake(Tuning.VFX.playerHitShakeIntensity)
+                }
+                if !player.isAlive { triggerGameOver() }
+            }
+            return
+        }
+
+        if mask == (Category.player | Category.pickup) {
+            let pickupNode: SKNode? = a.categoryBitMask == Category.pickup ? a.node : b.node
+            if let pn = pickupNode {
+                pickups.collect(node: pn)
+                _ = player.upgradeSpread()                  // false at max — bonus still applies
+                score += Tuning.Pickup.scoreBonus
+                audio.play(.pickup, at: player.node.position)
+                let gen = UIImpactFeedbackGenerator(style: .light)
+                gen.impactOccurred()
             }
             return
         }
@@ -273,6 +367,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func restart() {
         hud.dismissGameOver()
         bullets.clearAll()
+        pickups.clearAll()
         enemies.reset()
         physicsWorld.speed = 1
         elapsed = 0
@@ -286,15 +381,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         UserDefaults.standard.integer(forKey: "best_score")
     }
 
-    /// Drops a one-shot explosion sprite at the given world position. If the
-    /// ExplosionAnim atlas is missing, this is a no-op — audio still plays.
+    /// Drops a one-shot explosion sprite at the given world position. Reuses
+    /// the BombExplosionAnim frames at a smaller scale — the original
+    /// ExplosionAnim art was hard-edged and read as an opaque box at kill scale.
     private func spawnExplosion(at position: CGPoint) {
-        guard let action = AnimationCatalog.oneShot(.explosion, frameDuration: 1.0 / 24) else { return }
-        let frames = AnimationCatalog.textures(for: .explosion)
+        guard let action = AnimationCatalog.oneShot(.bombExplosion,
+                                                     frameDuration: Tuning.VFX.bombExplosionFrameDuration) else { return }
+        let frames = AnimationCatalog.textures(for: .bombExplosion)
         guard let first = frames.first else { return }
         let node = SKSpriteNode(texture: first)
-        // Match the rough kill-site radius (≈ 2× Enemy.radius) so the blast
-        // visually contains the enemy that just died.
         let target: CGFloat = Tuning.Enemy.radius * 2.4
         let maxDim = max(first.size().width, first.size().height)
         if maxDim > 0 { node.setScale(target / maxDim) }
@@ -302,6 +397,34 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.zPosition = 50
         addChild(node)
         node.run(action)
+    }
+
+    /// 25-frame bomb detonation — larger, chunkier, slower per-frame than the
+    /// enemy-kill explosion. Used for gorilla bombs (hit or timeout).
+    private func spawnBombExplosion(at position: CGPoint) {
+        guard let action = AnimationCatalog.oneShot(.bombExplosion,
+                                                     frameDuration: Tuning.VFX.bombExplosionFrameDuration) else { return }
+        let frames = AnimationCatalog.textures(for: .bombExplosion)
+        guard let first = frames.first else { return }
+        let node = SKSpriteNode(texture: first)
+        let target: CGFloat = Tuning.Enemy.radius * Tuning.VFX.bombExplosionScale
+        let maxDim = max(first.size().width, first.size().height)
+        if maxDim > 0 { node.setScale(target / maxDim) }
+        node.position = position
+        node.zPosition = 50
+        addChild(node)
+        node.run(action)
+    }
+
+    /// All the per-event compositing for a bomb going off: animated sprite,
+    /// audio, big screen shake, large glow halo.
+    private func detonateBomb(at position: CGPoint) {
+        spawnBombExplosion(at: position)
+        audio.play(.explosion, at: position)
+        applyShake(Tuning.VFX.bombShakeIntensity)
+        vfx.spawnGlow(at: position,
+                      scale: Tuning.VFX.glowBombScale,
+                      duration: Tuning.VFX.glowBombDuration)
     }
 
     #if DEBUG

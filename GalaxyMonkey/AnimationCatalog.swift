@@ -15,7 +15,7 @@ import SpriteKit
 enum AnimationSet: String, CaseIterable {
     case gorillaIdle   = "GorillaIdleAnim"
     case gorillaWindup = "GorillaWindupAnim"
-    case explosion     = "ExplosionAnim"
+    case bombExplosion = "BombExplosionAnim"
 }
 
 enum AnimationCatalog {

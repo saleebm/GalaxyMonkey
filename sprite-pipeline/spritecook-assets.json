@@ -227,6 +227,18 @@
       "notes": "Active player ammo. Drawn facing right; ProjectileSystem.fire rotates via b.node.zRotation = aim angle, so the tip naturally points where the right stick aims."
     },
     {
+      "asset_id": "e604b3d9-159d-493e-b996-8988c4ef26e9",
+      "label": "golden_banana_pickup",
+      "role": "pickup",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GoldenBanana.imageset/goldenbanana_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "abf17226-90e0-43ce-a5d4-3d4e6198e320",
+      "prompt": "A radiant golden banana power-up icon, side view laying horizontally with the tip pointing to the RIGHT, polished metallic gold skin with bright white highlights, deep amber shadows, a small dark-brown stem on the LEFT end, slight natural banana curve, glowing yellow-gold halo around it, sparkle accents to read as \"rare/special pickup\", clean silhouette, cartoon stylized HD, transparent background",
+      "size": [1024, 1024],
+      "notes": "Rare drop from enemy kills (~8%). +500 points and upgrades Player.spreadLevel (0→1→2). PickupSystem.swift owns spawn/despawn; Player.spreadLevel resets to 0 on hit. Max level is 2 (3-line spread)."
+    },
+    {
       "asset_id": "285cd15a-f20f-4e4e-8ee2-b123716c066a",
       "label": "enemy_bullet_hd",
       "role": "projectile",
@@ -291,10 +303,18 @@
       "prompt": "Cartoon banana-shaped life icon for game HUD, banana-yellow curved peel shape with brown stem, glossy highlight on top, deep-purple outline, slight friendly tilt, small star glint, simple bold cartoon style, 128x128 HD, transparent background",
       "size": [128, 128],
       "notes": "Banana instead of heart — leans into the game theme. HUDController stamps N of these top-right."
+    },
+    {
+      "asset_id": "d59348af-b86b-4875-931a-7853ee74c1ad",
+      "sha12": "3415c2ffbe48",
+      "label": "glow_halo_canonical",
+      "role": "fx",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Glow.imageset/glow_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "A perfectly circular radial-gradient glow halo with a soft white-hot core that smoothly fades to fully transparent at the outer edge. Completely symmetrical, no rings, no streaks, no rays, no lens artifacts, no concentric bands. Designed as an additive-blend bloom layer to composite over explosions, muzzle flashes, and energy halos. Top-down view, centered on canvas, single soft falloff from white center to transparent edge. Transparent background.",
+      "size": [1024, 1024],
+      "notes": "Replaces the legacy 35×20 glow.png. Used by VFXPool for muzzleFlash, enemy-kill halo, and bomb halo at scales up to 2× Enemy.radius."
     }
-  ],
-  "todo": [
-    "Banana / RottenBanana pickup system (orphaned art, separate feature).",
-    "Optional: thrust b14-b16 import + player thruster animation."
   ]
 }

@@ -9,6 +9,7 @@ import SpriteKit
 struct ContentView: View {
 
     @State private var scene: GameScene?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         GeometryReader { proxy in
@@ -29,6 +30,11 @@ struct ContentView: View {
                     let s = GameScene(size: proxy.size)
                     s.scaleMode = .resizeFill
                     scene = s
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase != .active {
+                    scene?.applicationDidLoseFocus()
                 }
             }
         }

@@ -125,23 +125,30 @@ final class EnemySystem {
             fireAtRelease()
             return
         }
-        let fpf = 0.125
-        // Release the bomb on frame 6 of 8 — peak of the windup, hand
-        // overhead. Clamp in case the atlas has fewer frames.
+        // Per-frame timing curve: slow anticipation → quick release →
+        // soft follow-through. Smooths out the 8fps frame-pop by holding
+        // key poses longer and rushing the throw itself. Sums to ~1.0s
+        // so the +1.0s cooldown padding in `tick` still lines up.
+        let timings: [TimeInterval] = [0.16, 0.14, 0.12, 0.10, 0.08, 0.08, 0.14, 0.18]
         let releaseIdx = min(5, frames.count - 1)
-        let pre  = SKAction.animate(with: Array(frames[0..<releaseIdx]),
-                                    timePerFrame: fpf)
-        let fire = SKAction.run(fireAtRelease)
-        let post = SKAction.animate(with: Array(frames[releaseIdx..<frames.count]),
-                                    timePerFrame: fpf)
-        let restart = SKAction.run { [weak visual] in
+
+        var actions: [SKAction] = []
+        for i in 0..<frames.count {
+            if i == releaseIdx {
+                actions.append(SKAction.run(fireAtRelease))
+            }
+            actions.append(SKAction.setTexture(frames[i], resize: false))
+            let dur = i < timings.count ? timings[i] : 0.12
+            actions.append(SKAction.wait(forDuration: dur))
+        }
+        actions.append(SKAction.run { [weak visual] in
             guard let visual else { return }
             if let loop = AnimationCatalog.loop(.gorillaIdle, frameDuration: 0.125) {
                 visual.run(loop, withKey: "idle")
             }
-        }
+        })
         visual.removeAction(forKey: "idle")
-        visual.run(SKAction.sequence([pre, fire, post, restart]), withKey: "windup")
+        visual.run(SKAction.sequence(actions), withKey: "windup")
     }
 
     private func spawn() {

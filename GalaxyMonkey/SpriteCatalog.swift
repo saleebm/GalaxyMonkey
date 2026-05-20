@@ -18,8 +18,7 @@ enum Sprite: String, CaseIterable {
     case bullet        = "Bullet"
     case enemyBullet   = "EnemyBullet"
     case bomb          = "Bomb"
-    case banana        = "Banana"
-    case rottenBanana  = "RottenBanana"
+    case goldenBanana  = "GoldenBanana"
     case preppyLeft    = "PreppyLeft"
     case preppyRight   = "PreppyRight"
     case whiteLeft     = "WhiteLeft"
@@ -37,11 +36,21 @@ enum Sprite: String, CaseIterable {
     case miniBossLeft  = "MiniBossLeft"
     case miniBossRight = "MiniBossRight"
     case spaceBackdrop = "SpaceBackdrop"
-    case blackHole     = "BlackHole"
     case explosion     = "Explosion"
     case title         = "Title"
     case pauseIcon     = "PauseIcon"
     case lifeHeart     = "LifeHeart"
+    // Parallax backdrop set + glow halo.
+    case sun           = "Sun"
+    case mercury       = "Mercury"
+    case venus         = "Venus"
+    case earth         = "Earth"
+    case mars          = "Mars"
+    case jupiter       = "Jupiter"
+    case saturn        = "Saturn"
+    case uranus        = "Uranus"
+    case neptune       = "Neptune"
+    case glow          = "Glow"
 }
 
 enum SpriteCatalog {
