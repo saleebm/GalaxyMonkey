@@ -37,7 +37,9 @@ final class Player {
     init(scene: SKScene) {
         self.scene = scene
         let root = SKNode()
-        root.position = CGPoint(x: scene.size.width / 2, y: scene.size.height / 2)
+        // Start near Earth's orbit so the player isn't inside the Sun sprite.
+        root.position = CGPoint(x: scene.size.width / 2 + Tuning.World.orbitEarth,
+                                y: scene.size.height / 2)
         root.zPosition = 50
 
         let body = SKNode()
@@ -53,13 +55,13 @@ final class Player {
         self.visual = body
         self.node = root
 
-        // Native-particle exhaust — parents off `body` so it inherits the
-        // L/R flip and aim-tilt, gives an always-on orange flame at the
-        // ship's rear even when stationary. targetNode = scene below detaches
-        // emitted particles into world space so they visibly trail behind
-        // the ship as it moves.
+        // Anti-grav exhaust beneath the saucer disc, shooting straight down.
+        // Lives on `body`, so it inherits the bank tilt — when the disc leans
+        // into a slide the thrust visibly vectors with it. targetNode = scene
+        // detaches emitted particles into world space so they trail in place.
         let emitter = ThrusterEmitter.make()
-        emitter.position = CGPoint(x: Tuning.VFX.thrustTailOffsetX, y: 0)
+        emitter.position = CGPoint(x: 0, y: -Tuning.Player.radius)
+        emitter.emissionAngle = -.pi / 2
         emitter.zPosition = Tuning.VFX.thrustZ + 0.5
         body.addChild(emitter)
         self.thrusterEmitter = emitter
@@ -86,15 +88,16 @@ final class Player {
         isFiring = false
         spreadLevel = 0
         visual.alpha = 1
+        visual.zRotation = 0
         guard let scene else { return }
-        node.position = CGPoint(x: scene.size.width / 2, y: scene.size.height / 2)
+        node.position = CGPoint(x: scene.size.width / 2 + Tuning.World.orbitEarth,
+                                y: scene.size.height / 2)
         onLivesChanged?(lives)
     }
 
     func update(dt: TimeInterval,
                 moveStick: CGVector,
-                aimStick: CGVector,
-                bounds: CGRect) {
+                aimStick: CGVector) {
         let dtF = CGFloat(dt)
 
         // Target velocity from stick magnitude/direction.
@@ -115,12 +118,19 @@ final class Player {
             velocity.dy += dvy / mag * step
         }
 
-        var p = node.position
-        p.x = max(bounds.minX, min(bounds.maxX, p.x + velocity.dx * dtF))
-        p.y = max(bounds.minY, min(bounds.maxY, p.y + velocity.dy * dtF))
-        node.position = p
+        node.position.x += velocity.dx * dtF
+        node.position.y += velocity.dy * dtF
 
-        // Aim: only update when right stick is meaningfully engaged.
+        // Bank the visual into the slide. Negative zRotation = CW = top of
+        // ship tilts right, which matches rightward velocity. Exponential
+        // approach toward the target so the ship eases in/out of bank.
+        let bankT = max(-1, min(1, velocity.dx / Tuning.Player.maxSpeed))
+        let targetBank = -bankT * Tuning.Player.maxBankRadians
+        let approach = CGFloat(1.0 - exp(-Double(Tuning.Player.bankApproachRate) * dt))
+        visual.zRotation += (targetBank - visual.zRotation) * approach
+
+        // Aim: only update when right stick is meaningfully engaged. Drives
+        // ProjectileSystem firing direction independently of the ship's bank.
         let aimMag = (aimStick.dx * aimStick.dx + aimStick.dy * aimStick.dy).squareRoot()
         if aimMag > 0.001 {
             aimAngle = atan2(aimStick.dy, aimStick.dx)
@@ -128,16 +138,6 @@ final class Player {
         } else {
             isFiring = false
         }
-        // Ship stays upright. Body mirrors L/R based on aim's X sign, and
-        // tilts ±Tuning.Player.aimTiltMax based on aim's Y component — reads
-        // as "leaning into the shot" rather than spinning to face it.
-        let aimX = cos(aimAngle)
-        let aimY = sin(aimAngle)
-        let facingRight = aimX >= 0
-        visual.xScale = facingRight ? abs(visual.xScale) : -abs(visual.xScale)
-        // Tilt sign flips with facing so the lean reads naturally on both sides.
-        let tiltSign: CGFloat = facingRight ? 1 : -1
-        visual.zRotation = aimY * Tuning.Player.aimTiltMax * tiltSign
 
         if isInvulnerable {
             invulnRemaining -= dt
@@ -165,6 +165,17 @@ final class Player {
     func upgradeSpread() -> Bool {
         guard spreadLevel < Tuning.Pickup.maxSpreadLevel else { return false }
         spreadLevel += 1
+        return true
+    }
+
+    /// Adds a life up to `Tuning.Player.maxLives`. Returns true if a life was
+    /// actually added. Used as the "overflow" reward for collecting a banana
+    /// while already at max spread.
+    @discardableResult
+    func restoreLife() -> Bool {
+        guard lives < Tuning.Player.maxLives else { return false }
+        lives += 1
+        onLivesChanged?(lives)
         return true
     }
 

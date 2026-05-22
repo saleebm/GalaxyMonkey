@@ -23,12 +23,17 @@ final class EnemySystem {
     private var enemies: [Enemy] = []
     private var spawnTimer: TimeInterval = 0
     private var elapsed: TimeInterval = 0
-    private var bounds: CGRect = .zero
     private var regularKillsSinceBoss: Int = 0
     private var bossAlive: Bool = false
 
     /// External provider for the player's current world position.
     var playerPositionProvider: () -> CGPoint = { .zero }
+    /// Current camera position in world space — drives the spawn rectangle so
+    /// enemies appear just outside what the player can actually see, even as
+    /// the camera moves across the universe.
+    var cameraPositionProvider: () -> CGPoint = { .zero }
+    /// Visible viewport size in points.
+    var viewSizeProvider: () -> CGSize = { .zero }
 
     /// Called when a shooting/bombing enemy wants to fire. The closure
     /// resolves which projectile path to use (bullet vs bomb) and routes
@@ -52,8 +57,6 @@ final class EnemySystem {
         regularKillsSinceBoss = 0
         bossAlive = false
     }
-
-    func updateBounds(_ rect: CGRect) { bounds = rect }
 
     func update(dt: TimeInterval) {
         elapsed += dt
@@ -154,9 +157,18 @@ final class EnemySystem {
     private func spawn() {
         guard let scene else { return }
 
-        // Pick a side of the spawn rectangle (outside visible bounds).
-        let pad = Tuning.Enemy.spawnPaddingPx
-        let r = bounds.insetBy(dx: -pad, dy: -pad)
+        // Live viewport rectangle: a window centered on the camera. Enemies
+        // pop in just past its edge so they're never inside the visible area
+        // when they appear, even while the camera is mid-lerp toward the
+        // player.
+        let cam = cameraPositionProvider()
+        let view = viewSizeProvider()
+        guard view.width > 0, view.height > 0 else { return }
+        let pad = Tuning.Camera.enemySpawnViewPaddingPx
+        let r = CGRect(x: cam.x - view.width / 2,
+                       y: cam.y - view.height / 2,
+                       width: view.width,
+                       height: view.height).insetBy(dx: -pad, dy: -pad)
         let side = Int.random(in: 0...3)
         let pos: CGPoint
         switch side {
@@ -177,10 +189,10 @@ final class EnemySystem {
             type = EnemyType.weightedRandom()
         }
 
-        // Facing: if the spawn is right of the scene center, the enemy
-        // moves left → use the left-facing sprite; vice versa.
-        let centerX = bounds.midX
-        let facingLeft = pos.x >= centerX
+        // Facing: if the spawn is right of the camera center, the enemy
+        // moves left toward the player → use the left-facing sprite; vice
+        // versa.
+        let facingLeft = pos.x >= cam.x
         let sprite = facingLeft ? type.leftSprite : type.rightSprite
 
         let e = makeEnemy(at: pos, type: type, facingLeft: facingLeft, sprite: sprite)

@@ -23,7 +23,6 @@ final class ProjectileSystem {
     private var pool: [Bullet] = []
     private var activeBullets: [Bullet] = []
     private var lastShotTime: TimeInterval = 0
-    private var bounds: CGRect = .zero
 
     init(scene: SKScene) {
         self.scene = scene
@@ -31,8 +30,6 @@ final class ProjectileSystem {
             pool.append(makeBullet(radius: Tuning.Projectile.radius))
         }
     }
-
-    func updateBounds(_ rect: CGRect) { bounds = rect }
 
     /// Call every frame while the player is firing. Cooldown is internal.
     /// `spreadLevel` is the player's current weapon level (0 = single shot,
@@ -150,16 +147,11 @@ final class ProjectileSystem {
             b.remaining -= dt
             b.node.position.x += b.velocity.dx * dtF
             b.node.position.y += b.velocity.dy * dtF
-            let p = b.node.position
-            let expired = b.remaining <= 0
-            let offscreen = p.x < bounds.minX - 40 || p.x > bounds.maxX + 40 ||
-                             p.y < bounds.minY - 40 || p.y > bounds.maxY + 40
-            if expired || offscreen {
-                // A bomb that runs out the clock should still detonate
-                // visually — an off-screen bomb is treated as a dud and
-                // recycled silently.
-                if b.isBomb && expired && !offscreen {
-                    onBombExpire?(p)
+            if b.remaining <= 0 {
+                // A bomb that runs out the clock detonates at its last
+                // position. Player/enemy bullets just recycle silently.
+                if b.isBomb {
+                    onBombExpire?(b.node.position)
                 }
                 recycle(at: i)
                 continue

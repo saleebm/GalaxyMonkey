@@ -72,12 +72,16 @@ final class VirtualJoystick: SKNode {
         thumb.alpha = visible ? 1 : 0
     }
 
-    /// `sceneWidth` is used to decide which side a touch falls on.
-    func touchesBegan(_ touches: Set<UITouch>, in scene: SKScene) {
+    /// `parent` is the joystick's parent SKNode (the camera-attached `hudRoot`
+    /// in GameScene). Touch coords are read in that node's local space so the
+    /// joystick stays screen-relative as the camera moves through the world.
+    /// `viewWidth` is the visible viewport width — used to split touches into
+    /// left vs right halves.
+    func touchesBegan(_ touches: Set<UITouch>, in parent: SKNode, viewWidth: CGFloat) {
         guard trackedTouch == nil else { return }
         for touch in touches {
-            let p = touch.location(in: scene)
-            let onLeft = p.x < scene.size.width / 2
+            let p = touch.location(in: parent)
+            let onLeft = p.x < viewWidth / 2
             if (side == .left && onLeft) || (side == .right && !onLeft) {
                 trackedTouch = touch
                 anchor = p
@@ -90,9 +94,9 @@ final class VirtualJoystick: SKNode {
         }
     }
 
-    func touchesMoved(_ touches: Set<UITouch>, in scene: SKScene) {
+    func touchesMoved(_ touches: Set<UITouch>, in parent: SKNode) {
         guard let tracked = trackedTouch, touches.contains(tracked) else { return }
-        let p = tracked.location(in: scene)
+        let p = tracked.location(in: parent)
         let dx = p.x - anchor.x
         let dy = p.y - anchor.y
         let dist = (dx * dx + dy * dy).squareRoot()
@@ -106,7 +110,7 @@ final class VirtualJoystick: SKNode {
         vector = CGVector(dx: nx * outMag, dy: ny * outMag)
     }
 
-    func touchesEnded(_ touches: Set<UITouch>, in scene: SKScene) {
+    func touchesEnded(_ touches: Set<UITouch>) {
         guard let tracked = trackedTouch else { return }
         if touches.contains(tracked) {
             trackedTouch = nil

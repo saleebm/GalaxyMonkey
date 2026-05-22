@@ -2,9 +2,11 @@
 //  PlanetField.swift
 //  GalaxyMonkey
 //
-//  Parallax planet backdrop. Sits between the two starfield layers in z, so
-//  reads as bodies floating in deep space behind the dogfight. Drifts opposite
-//  to the player's velocity at a slower factor than the starfield's near layer.
+//  Real solar system. The Sun sits at `worldCenter`; each planet rides a
+//  tilted elliptical orbit (semiMinor = orbitTiltY × semiMajor) around it,
+//  with a small per-ring inclination so the system reads in 3D rather than
+//  flat. Planets also spin slowly on their own axis. No parallax — these are
+//  real world-space objects, not decoration.
 //
 
 import SpriteKit
@@ -12,82 +14,110 @@ import UIKit
 
 final class PlanetField {
 
-    private struct Layer {
-        let node: SKNode
-        let parallaxFactor: CGFloat
+    private final class Orbit {
+        let node: SKSpriteNode
+        let radius: CGFloat
+        var phase: CGFloat
+        let angularSpeed: CGFloat
+        let inclinationSin: CGFloat
+        let inclinationCos: CGFloat
+
+        init(node: SKSpriteNode, radius: CGFloat, phase: CGFloat,
+             angularSpeed: CGFloat, inclination: CGFloat) {
+            self.node = node
+            self.radius = radius
+            self.phase = phase
+            self.angularSpeed = angularSpeed
+            self.inclinationSin = sin(inclination)
+            self.inclinationCos = cos(inclination)
+        }
     }
 
-    private let layers: [Layer]
-    private let bounds: CGRect
+    private let root: SKNode
+    private var orbits: [Orbit] = []
 
     init(scene: SKScene) {
-        let b = CGRect(origin: .zero, size: scene.size)
-        bounds = b
+        let root = SKNode()
+        root.position = CGPoint(x: scene.size.width / 2, y: scene.size.height / 2)
+        scene.addChild(root)
+        self.root = root
 
-        // Pool of available planet sprites. We sample without replacement per
-        // layer so the same planet doesn't appear twice in one band.
-        let palette: [Sprite] = [.sun, .mercury, .venus, .earth, .mars,
-                                  .jupiter, .saturn, .uranus, .neptune]
-        var available = palette
-
-        let factors = Tuning.VFX.planetParallaxFactors
-        let zPositions = Tuning.VFX.planetZPositions
-        let perLayer = Tuning.VFX.planetsPerLayer
-
-        var built: [Layer] = []
-        for layerIndex in 0..<factors.count {
-            let node = SKNode()
-            node.zPosition = zPositions[layerIndex]
-            scene.addChild(node)
-
-            for _ in 0..<perLayer {
-                guard !available.isEmpty else { break }
-                let pick = available.remove(at: Int.random(in: 0..<available.count))
-                if let planet = PlanetField.makePlanet(sprite: pick, bounds: b) {
-                    node.addChild(planet)
-                }
-            }
-            built.append(Layer(node: node, parallaxFactor: factors[layerIndex]))
-        }
-        self.layers = built
+        installSun()
+        installPlanet(sprite: .mercury, diameter: Tuning.World.mercuryDiameter,
+                      radius: Tuning.World.orbitMercury, angularSpeed: Tuning.World.angSpeedMercury,
+                      zPosition: -45)
+        installPlanet(sprite: .venus, diameter: Tuning.World.venusDiameter,
+                      radius: Tuning.World.orbitVenus, angularSpeed: Tuning.World.angSpeedVenus,
+                      zPosition: -44)
+        installPlanet(sprite: .earth, diameter: Tuning.World.earthDiameter,
+                      radius: Tuning.World.orbitEarth, angularSpeed: Tuning.World.angSpeedEarth,
+                      zPosition: -43)
+        installPlanet(sprite: .mars, diameter: Tuning.World.marsDiameter,
+                      radius: Tuning.World.orbitMars, angularSpeed: Tuning.World.angSpeedMars,
+                      zPosition: -42)
+        installPlanet(sprite: .jupiter, diameter: Tuning.World.jupiterDiameter,
+                      radius: Tuning.World.orbitJupiter, angularSpeed: Tuning.World.angSpeedJupiter,
+                      zPosition: -41)
+        installPlanet(sprite: .saturn, diameter: Tuning.World.saturnDiameter,
+                      radius: Tuning.World.orbitSaturn, angularSpeed: Tuning.World.angSpeedSaturn,
+                      zPosition: -40)
+        installPlanet(sprite: .uranus, diameter: Tuning.World.uranusDiameter,
+                      radius: Tuning.World.orbitUranus, angularSpeed: Tuning.World.angSpeedUranus,
+                      zPosition: -39)
+        installPlanet(sprite: .neptune, diameter: Tuning.World.neptuneDiameter,
+                      radius: Tuning.World.orbitNeptune, angularSpeed: Tuning.World.angSpeedNeptune,
+                      zPosition: -38)
     }
 
-    func update(dt: TimeInterval, playerVelocity: CGVector) {
+    func update(dt: TimeInterval) {
         let dtF = CGFloat(dt)
-        for layer in layers {
-            let dx = -playerVelocity.dx * layer.parallaxFactor * dtF
-            let dy = -playerVelocity.dy * layer.parallaxFactor * dtF
-            for child in layer.node.children {
-                var p = child.position
-                p.x += dx
-                p.y += dy
-                // Wrap with padding so planets don't pop in mid-frame.
-                let pad: CGFloat = 80
-                if p.x < bounds.minX - pad { p.x += bounds.width + pad * 2 }
-                if p.x > bounds.maxX + pad { p.x -= bounds.width + pad * 2 }
-                if p.y < bounds.minY - pad { p.y += bounds.height + pad * 2 }
-                if p.y > bounds.maxY + pad { p.y -= bounds.height + pad * 2 }
-                child.position = p
-            }
+        for orbit in orbits {
+            orbit.phase += orbit.angularSpeed * dtF
+            let cx = cos(orbit.phase) * orbit.radius
+            let cy = sin(orbit.phase) * orbit.radius * Tuning.World.orbitTiltY
+            // Rotate the orbit plane by per-ring inclination so different
+            // rings aren't all aligned to the same axis.
+            let x = orbit.inclinationCos * cx - orbit.inclinationSin * cy
+            let y = orbit.inclinationSin * cx + orbit.inclinationCos * cy
+            orbit.node.position = CGPoint(x: x, y: y)
         }
     }
 
-    private static func makePlanet(sprite: Sprite, bounds: CGRect) -> SKNode? {
-        guard let tex = SpriteCatalog.texture(for: sprite) else { return nil }
+    // MARK: - Build
+
+    private func installSun() {
+        guard let tex = SpriteCatalog.texture(for: .sun) else { return }
+        let sun = SKSpriteNode(texture: tex)
+        let maxDim = max(tex.size().width, tex.size().height)
+        if maxDim > 0 { sun.setScale(Tuning.World.sunDisplayDiameter / maxDim) }
+        sun.position = .zero
+        sun.zPosition = -46
+        root.addChild(sun)
+
+        let spin = SKAction.rotate(byAngle: 2 * .pi,
+                                   duration: TimeInterval.random(in: Tuning.VFX.planetRotationPeriodMin...Tuning.VFX.planetRotationPeriodMax))
+        sun.run(SKAction.repeatForever(spin))
+    }
+
+    private func installPlanet(sprite: Sprite, diameter: CGFloat,
+                               radius: CGFloat, angularSpeed: CGFloat,
+                               zPosition: CGFloat) {
+        guard let tex = SpriteCatalog.texture(for: sprite) else { return }
         let node = SKSpriteNode(texture: tex)
-        let scale = CGFloat.random(in: Tuning.VFX.planetScaleMin...Tuning.VFX.planetScaleMax)
-        node.setScale(scale)
-        node.position = CGPoint(x: .random(in: bounds.minX...bounds.maxX),
-                                y: .random(in: bounds.minY...bounds.maxY))
-        node.alpha = 0.85
+        let maxDim = max(tex.size().width, tex.size().height)
+        if maxDim > 0 { node.setScale(diameter / maxDim) }
+        node.zPosition = zPosition
+        node.alpha = 0.95
+        root.addChild(node)
 
-        let periodMin = Tuning.VFX.planetRotationPeriodMin
-        let periodMax = Tuning.VFX.planetRotationPeriodMax
-        let period = TimeInterval.random(in: periodMin...periodMax)
+        let phase = CGFloat.random(in: 0..<(2 * .pi))
+        let inclination = CGFloat.random(in: -Tuning.World.inclinationRange...Tuning.World.inclinationRange)
+
+        let period = TimeInterval.random(in: Tuning.VFX.planetRotationPeriodMin...Tuning.VFX.planetRotationPeriodMax)
         let direction: CGFloat = Bool.random() ? 1 : -1
-        let spin = SKAction.rotate(byAngle: direction * 2 * .pi, duration: period)
-        node.run(SKAction.repeatForever(spin))
+        node.run(SKAction.repeatForever(SKAction.rotate(byAngle: direction * 2 * .pi, duration: period)))
 
-        return node
+        orbits.append(Orbit(node: node, radius: radius, phase: phase,
+                            angularSpeed: angularSpeed, inclination: inclination))
     }
 }

@@ -39,12 +39,47 @@
       "asset_id": "ed96846f-93ff-4137-a198-5f1de4080011",
       "label": "player_ship_canonical_v3",
       "role": "player",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/Player.imageset/player_sc.png",
+      "asset_path": null,
       "output_format": "still",
       "model": "gemini-3.1-flash-image-preview",
       "prompt": "Refined banana-yellow cartoon monkey-face spaceship, top-down 3/4 view, glossy hull with subtle metallic sheen, twin glowing blue ion thrusters at rear, sharper aerodynamic silhouette, glass cockpit dome catching starlight, two side wing fins curved like banana peels, friendly grinning monkey-face front, cartoon stylized, transparent background",
       "edit_of": "8c2aba65-b5b6-4e09-98ef-d39d7f16a92b",
-      "size": [256, 256]
+      "size": [256, 256],
+      "notes": "Superseded by player_ship_canonical_v4. Backup PNG retained at sprite-pipeline/backups/player_sc_v3.png."
+    },
+    {
+      "asset_id": "f1e77256-af60-43d8-a3f9-2b4e2bf0a5c4",
+      "sha12": "c1f9e939c201",
+      "label": "player_ship_canonical_v4",
+      "role": "player",
+      "asset_path": null,
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "prompt": "Modernized realistic monkey-themed spaceship, top-down 3/4 view from above and slightly behind, fuselage pointing toward upper-right at standard cruise heading, perfectly level (0° bank), polished banana-yellow metallic hull with subtle panel lines and rivet detail, glass cockpit dome with stylized cartoon monkey face inside (chrome-rimmed visor, friendly grin visible through tinted glass), two swept-back wing fins with curved banana-peel silhouette in chrome, twin glowing cyan ion thrusters at the rear, soft directional rim-light from upper-left, subtle ambient occlusion under wings, no motion blur, no tilt, no banking, completely upright and symmetric, transparent background",
+      "size": [256, 256],
+      "rendered_size": [1022, 1022],
+      "notes": "Superseded by player_ship_canonical_v5. Rocket silhouette read as awkward and direction-locked when banking — replaced with a round saucer that's omnidirectional. Backup PNG retained at sprite-pipeline/backups/player_sc_v4.png."
+    },
+    {
+      "asset_id": "4832914e-9f4b-4d4b-87f8-e6dac66a5953",
+      "sha12": "c16cf81d1c1f",
+      "label": "player_ship_canonical_v5",
+      "role": "player",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Player.imageset/player_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "cb12d063-195d-442c-88f0-39bc132bca47",
+      "prompt": "Round flying saucer player spaceship, classic UFO disc shape, top-down 3/4 view from slightly above and behind, perfectly omnidirectional silhouette with no clear front or back, dark crimson-red polished metallic disc hull with concentric panel rings and rivet detail, raised glass dome cockpit on top with two or three cartoon monkey astronauts visible inside (helmets, friendly grins), warm cabin glow through the dome, subtle chrome trim around the disc rim, glowing cyan underglow ring beneath the disc suggesting anti-grav thrust, soft directional rim-light from upper-left, ambient shadow under the disc, level (no bank), centered in frame, transparent background, modernized realistic rendering of the original Galaxy Monkey saucer",
+      "size": [256, 256],
+      "rendered_size": [1002, 1002],
+      "notes": "Active player ship. Round saucer modeled on the legacy player.png (reference_asset_id=cb12d063, player_legacy_import). Omnidirectional silhouette — reads correctly regardless of slide direction. Banking handled in code: Player.swift lerps visual.zRotation toward -clamp(velocity.dx/maxSpeed,±1)*Tuning.Player.maxBankRadians (±30°) at Tuning.Player.bankApproachRate. Thruster repositioned beneath disc center (Player.swift init) pointing straight down so it vectors with the bank tilt."
+    },
+    {
+      "label": "player_ship_v4_bank_attempts_failed",
+      "role": "player",
+      "asset_path": null,
+      "output_format": "still",
+      "notes": "Six generate_game_art calls using f1e77256-af60-43d8-a3f9-2b4e2bf0a5c4 as reference_asset_id with explicit bank-angle prompts (-30, -20, -10, +10, +20, +30 deg) all returned visually-identical reproductions of the canonical pose. The model treats reference_asset_id as 'reproduce this asset' and ignores per-angle perspective directives. Same failure family as the prior animate_game_art 3D-rotation limit. Asset ids generated but unused: 7b154473-df54-4aa6-854f-1c2aa7f0142e, 13a7163f-cef7-4453-bbe9-e22603839b71, ed309331-25f2-44ce-acc6-e00bd2a21a77, eeb79d34-5882-4e33-b8a4-a13f9315b728, 2cb0f606-2b23-446f-8251-0a69ffd1260f, 6b22b5d9-06a4-4890-ac1f-50a0c148163b. Workaround shipped: code-driven zRotation in Player.swift."
     },
     {
       "asset_id": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
@@ -315,6 +350,19 @@
       "prompt": "A perfectly circular radial-gradient glow halo with a soft white-hot core that smoothly fades to fully transparent at the outer edge. Completely symmetrical, no rings, no streaks, no rays, no lens artifacts, no concentric bands. Designed as an additive-blend bloom layer to composite over explosions, muzzle flashes, and energy halos. Top-down view, centered on canvas, single soft falloff from white center to transparent edge. Transparent background.",
       "size": [1024, 1024],
       "notes": "Replaces the legacy 35×20 glow.png. Used by VFXPool for muzzleFlash, enemy-kill halo, and bomb halo at scales up to 2× Enemy.radius."
+    },
+    {
+      "asset_id": "a624b44d-89e7-4f1d-8ea5-a248f09dd03a",
+      "label": "player_spin_anim",
+      "role": "player",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/PlayerSpinAnim.spriteatlas/",
+      "output_format": "spritesheet",
+      "animated_from": "ed96846f-93ff-4137-a198-5f1de4080011",
+      "frames": 7,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": true,
+      "notes": "DEPRECATED — no longer wired into Player.swift. AnimationSet.playerSpin enum case was removed; the .spriteatlas folder remains on disk for reference only. Replaced by static player_ship_canonical_v4 + code-driven bank tilt. History: was a continuous tumble loop. SpriteCook's animation engine produced 2D sprite rotation, not the requested 3D barrel-roll around the forward axis. Generated 8 frames at 5120×640; frame 1 dropped due to a consistent SpriteCook first-frame two-ship glitch, so the atlas uses 7 frames (sheet frames 2-8 renamed to atlas frames 01-07)."
     }
   ]
 }

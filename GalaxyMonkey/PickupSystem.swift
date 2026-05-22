@@ -5,7 +5,8 @@
 //  Manages golden-banana pickups that drop rarely on enemy kills. Each
 //  pickup is a static node with a Category.pickup physics body; collecting
 //  it bumps Player.spreadLevel and awards a score bonus. Pickups despawn
-//  after Tuning.Pickup.lifetime or when leaving the playfield.
+//  after Tuning.Pickup.lifetime — the world is a free-roaming universe so
+//  there's no static playfield to cull against.
 //
 //  Drops are rare (~8%) so we skip pooling — lazy creation is simpler and
 //  the physics body churn is negligible at this rate.
@@ -18,13 +19,10 @@ final class PickupSystem {
 
     private weak var scene: SKScene?
     private var active: [Pickup] = []
-    private var bounds: CGRect = .zero
 
     init(scene: SKScene) {
         self.scene = scene
     }
-
-    func updateBounds(_ rect: CGRect) { bounds = rect }
 
     /// Rolls Tuning.Pickup.dropChance and spawns a golden banana on success.
     /// Call this on every enemy kill.
@@ -82,10 +80,7 @@ final class PickupSystem {
             p.phase += dt * bobStep
             p.visual.position.y = sin(CGFloat(p.phase)) * Tuning.Pickup.bobAmplitude
 
-            let pos = p.node.position
-            let outOfBounds = pos.x < bounds.minX - 40 || pos.x > bounds.maxX + 40 ||
-                              pos.y < bounds.minY - 40 || pos.y > bounds.maxY + 40
-            if p.remaining <= 0 || outOfBounds {
+            if p.remaining <= 0 {
                 p.node.removeFromParent()
                 active.remove(at: i)
                 continue

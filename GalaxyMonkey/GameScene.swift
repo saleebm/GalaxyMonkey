@@ -13,6 +13,12 @@ import UIKit
 final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private var camNode: SKCameraNode!
+    /// Camera-attached container for all screen-locked UI. Its position is
+    /// `(-size.width/2, -size.height/2)` in camera-local space so that any
+    /// child positioned in scene-space coords (e.g., `(24, size.height - 36)`)
+    /// lands at the correct screen corner regardless of where the camera is
+    /// in the world.
+    private var hudRoot: SKNode!
 
     private var starfield: Starfield!
     private var planetField: PlanetField!
@@ -29,6 +35,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private let input = GameControllerInput()
 
     private var lastUpdateTime: TimeInterval = 0
+    private var lastCameraPosition: CGPoint = .zero
     private var elapsed: TimeInterval = 0
     private var isStarted = false
     private var isGameOver = false
@@ -66,34 +73,50 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(cam)
         camera = cam
         camNode = cam
+        lastCameraPosition = cam.position
 
-        // Optional space backdrop sprite; falls back to flat color above.
+        // Camera-attached HUD container. Its origin sits at the viewport's
+        // lower-left, so any HUD math expressed in scene-space coordinates
+        // works unchanged.
+        let hudContainer = SKNode()
+        hudContainer.position = CGPoint(x: -size.width / 2, y: -size.height / 2)
+        cam.addChild(hudContainer)
+        self.hudRoot = hudContainer
+
+        // Space backdrop fills the viewport regardless of where the camera
+        // moves through the universe.
         if let tex = SpriteCatalog.texture(for: .spaceBackdrop) {
             let bg = SKSpriteNode(texture: tex)
-            bg.anchorPoint = .zero
+            bg.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             bg.position = .zero
             bg.size = size
             bg.zPosition = -100
-            addChild(bg)
+            cam.addChild(bg)
         }
 
-        starfield   = Starfield(scene: self)
+        starfield   = Starfield(parent: cam, viewSize: size)
         planetField = PlanetField(scene: self)
         player    = Player(scene: self)
         enemies   = EnemySystem(scene: self)
         bullets   = ProjectileSystem(scene: self)
         pickups   = PickupSystem(scene: self)
-        hud       = HUDController(scene: self, initialBest: bestScore())
+        hud       = HUDController(parent: hudContainer, viewSize: size, initialBest: bestScore())
         audio     = AudioController(scene: self)
         vfx       = VFXPool(scene: self)
+        // Listener tracks the camera so on-screen explosions sound right even
+        // while the camera is lerping toward the player.
         audio.listenerProvider = { [weak self] in
-            self?.player.node.position ?? .zero
+            self?.camNode.position ?? .zero
         }
 
-        let inset = CGRect(origin: .zero, size: size).insetBy(dx: Tuning.Player.radius,
-                                                              dy: Tuning.Player.radius)
         enemies.playerPositionProvider = { [weak self] in
             self?.player.node.position ?? .zero
+        }
+        enemies.cameraPositionProvider = { [weak self] in
+            self?.camNode.position ?? .zero
+        }
+        enemies.viewSizeProvider = { [weak self] in
+            self?.size ?? .zero
         }
         enemies.enemyFireRequest = { [weak self] origin, angle, kind in
             guard let self else { return }
@@ -106,15 +129,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         bullets.onBombExpire = { [weak self] pos in
             self?.detonateBomb(at: pos)
         }
-        enemies.updateBounds(CGRect(origin: .zero, size: size))
-        bullets.updateBounds(CGRect(origin: .zero, size: size))
-        pickups.updateBounds(CGRect(origin: .zero, size: size))
-        _ = inset
 
-        // Joysticks live in scene space so the touch coordinates passed to
-        // VirtualJoystick (location(in: scene)) match their parent's space.
-        addChild(moveStick)
-        addChild(aimStick)
+        // Joysticks render in screen-space alongside the rest of the HUD so
+        // they stay anchored even when the camera moves across the universe.
+        hudContainer.addChild(moveStick)
+        hudContainer.addChild(aimStick)
 
         player.onLivesChanged = { [weak self] l in self?.hud.setLives(l) }
         hud.setLives(player.lives)
@@ -185,25 +204,27 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         // Touch sticks are skipped while a physical controller drives input.
+        // Touches are read in hudRoot's local space (which equals the visible
+        // viewport) so the joysticks stay screen-relative as the camera moves.
         if !input.hasPhysicalController {
-            moveStick.touchesBegan(touches, in: self)
-            aimStick.touchesBegan(touches, in: self)
+            moveStick.touchesBegan(touches, in: hudRoot, viewWidth: size.width)
+            aimStick.touchesBegan(touches, in: hudRoot, viewWidth: size.width)
         }
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        moveStick.touchesMoved(touches, in: self)
-        aimStick.touchesMoved(touches, in: self)
+        moveStick.touchesMoved(touches, in: hudRoot)
+        aimStick.touchesMoved(touches, in: hudRoot)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        moveStick.touchesEnded(touches, in: self)
-        aimStick.touchesEnded(touches, in: self)
+        moveStick.touchesEnded(touches)
+        aimStick.touchesEnded(touches)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        moveStick.touchesEnded(touches, in: self)
-        aimStick.touchesEnded(touches, in: self)
+        moveStick.touchesEnded(touches)
+        aimStick.touchesEnded(touches)
     }
 
     // MARK: - Update
@@ -216,17 +237,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         elapsed += dt
 
-        let bounds = CGRect(origin: .zero, size: size).insetBy(dx: Tuning.Player.radius,
-                                                                dy: Tuning.Player.radius)
         // Physical controller takes precedence over the on-screen sticks
         // when one is paired; otherwise read the dynamic touch joysticks.
         let useMFi = input.hasPhysicalController
         let moveVec = useMFi ? input.moveVector : moveStick.vector
         let aimVec  = useMFi ? input.aimVector  : aimStick.vector
-        player.update(dt: dt,
-                      moveStick: moveVec,
-                      aimStick: aimVec,
-                      bounds: bounds)
+        player.update(dt: dt, moveStick: moveVec, aimStick: aimVec)
 
         if player.isFiring {
             let fired = bullets.tryFirePlayer(from: player.node.position,
@@ -243,14 +259,46 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         bullets.update(dt: dt)
         pickups.update(dt: dt)
         enemies.update(dt: dt)
-        starfield.update(dt: dt, playerVelocity: player.velocity)
-        planetField.update(dt: dt, playerVelocity: player.velocity)
 
-        // Apply + decay screen shake after world subsystems have ticked.
-        camNode.position = CGPoint(x: size.width / 2 + shakeOffset.dx,
-                                    y: size.height / 2 + shakeOffset.dy)
+        // Camera follow with dead-zone. The camera only moves once the player
+        // has drifted past the dead-zone radius; then we lerp toward the player
+        // at followLerpPerSec. Done before star/planet ticks so they can read
+        // the post-step camera position.
+        let target = player.node.position
+        let dx = target.x - camNode.position.x
+        let dy = target.y - camNode.position.y
+        let dist = (dx * dx + dy * dy).squareRoot()
+        let dead = Tuning.Camera.deadzoneRadius
+        if dist > dead {
+            let lerp = min(1, CGFloat(dt) * Tuning.Camera.followLerpPerSec)
+            let pull = (dist - dead) / dist * lerp
+            camNode.position = CGPoint(x: camNode.position.x + dx * pull,
+                                        y: camNode.position.y + dy * pull)
+        }
+
+        planetField.update(dt: dt)
+
+        // Star parallax is driven by *camera* motion, not player motion — the
+        // dead-zone follow means they diverge whenever the player is moving
+        // less than the dead-zone or the camera is still catching up.
+        let cameraDelta = CGVector(dx: camNode.position.x - lastCameraPosition.x,
+                                    dy: camNode.position.y - lastCameraPosition.y)
+        starfield.update(dt: dt, cameraDelta: cameraDelta)
+        lastCameraPosition = camNode.position
+
+        // Apply + decay screen shake on top of the followed camera. Shake is a
+        // purely visual offset and must not feed back into the follow lerp.
+        camNode.position.x += shakeOffset.dx
+        camNode.position.y += shakeOffset.dy
         shakeOffset.dx *= Tuning.VFX.shakeDecay
         shakeOffset.dy *= Tuning.VFX.shakeDecay
+    }
+
+    override func didChangeSize(_ oldSize: CGSize) {
+        super.didChangeSize(oldSize)
+        guard let hudRoot else { return }
+        hudRoot.position = CGPoint(x: -size.width / 2, y: -size.height / 2)
+        starfield?.rebuild(viewSize: size)
     }
 
     /// Kicks the camera in a random direction. Decays via `shakeDecay`.
@@ -333,7 +381,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             let pickupNode: SKNode? = a.categoryBitMask == Category.pickup ? a.node : b.node
             if let pn = pickupNode {
                 pickups.collect(node: pn)
-                _ = player.upgradeSpread()                  // false at max — bonus still applies
+                // At max spread, the banana restores a life instead (up to
+                // Tuning.Player.maxLives). Score bonus applies either way,
+                // including when both spread and lives are maxed out.
+                if !player.upgradeSpread() {
+                    _ = player.restoreLife()
+                }
                 score += Tuning.Pickup.scoreBonus
                 audio.play(.pickup, at: player.node.position)
                 let gen = UIImpactFeedbackGenerator(style: .light)
@@ -433,6 +486,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func installDebugForceGameOver() {
         // SKLabelNode is the only node type SpriteKit surfaces to XCUITest
         // through automatic accessibility — see PenguinSlide's same hook.
+        // Parented to hudRoot so it stays anchored top-left as the camera
+        // moves through the universe.
         let node = SKLabelNode(text: Self.debugForceGameOverLabel)
         node.name = Self.debugForceGameOverLabel
         node.fontSize = 10
@@ -441,7 +496,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.verticalAlignmentMode = .top
         node.position = CGPoint(x: 4, y: size.height - 4)
         node.zPosition = 10_000
-        addChild(node)
+        hudRoot.addChild(node)
     }
     #endif
 }

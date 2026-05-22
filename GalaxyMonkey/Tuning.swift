@@ -17,12 +17,19 @@ enum Tuning {
         static let drag: CGFloat = 2.4             // exponential damping when no input
         static let radius: CGFloat = 22            // collision radius
         static let startingLives: Int = 3
+        // Hard cap on lives, including life-restore pickups. Matches the
+        // HUD's pre-allocated banana-heart icon slots (HUDController).
+        static let maxLives: Int = 5
         static let invulnDuration: TimeInterval = 1.6
         static let invulnBlinkHz: Double = 12
-        // Ship stays upright instead of fully rotating to face the aim
-        // direction. It mirrors L/R via xScale and tilts by up to this many
-        // radians based on the aim's vertical component (≈12°).
-        static let aimTiltMax: CGFloat = 0.21
+        // Max bank angle in radians the ship tilts to when sliding sideways
+        // at full horizontal stick. 30° reads as a real bank without the
+        // sprite looking like it's spinning 2D around its center.
+        static let maxBankRadians: CGFloat = .pi / 6
+        // Exponential approach rate (1/s) toward target bank angle. Higher =
+        // snappier. ~8 gives a 125 ms time constant — the ship visibly leans
+        // into a slide but doesn't snap.
+        static let bankApproachRate: CGFloat = 8.0
     }
 
     enum Projectile {
@@ -46,12 +53,12 @@ enum Tuning {
     }
 
     enum Enemy {
-        static let spawnIntervalStart: TimeInterval = 1.6
-        static let spawnIntervalEnd: TimeInterval = 0.45
+        static let spawnIntervalStart: TimeInterval = 2.7
+        static let spawnIntervalEnd: TimeInterval = 0.75
         static let rampDuration: TimeInterval = 90
         static let spawnPaddingPx: CGFloat = 60     // beyond the visible bounds
-        static let baseSpeed: CGFloat = 130
-        static let speedJitter: CGFloat = 60        // ± random
+        static let baseSpeed: CGFloat = 80
+        static let speedJitter: CGFloat = 36        // ± random
         static let radius: CGFloat = 22
         // Spawn one gorilla boss for every N regular kills. The counter
         // resets on boss spawn — so killing the gorilla doesn't roll into
@@ -140,18 +147,62 @@ enum Tuning {
         static let glowEnemyKillScale: CGFloat = 1.0
         static let glowBombScale: CGFloat = 2.0
 
-        // Planet parallax — sits between starfield layer1 (z=-50, 0.06) and
-        // layer2 (z=-40, 0.18). Two depth bands.
-        static let planetParallaxFactors: [CGFloat] = [0.10, 0.14]
-        static let planetZPositions: [CGFloat] = [-48, -44]
-        // Number of planets per layer.
-        static let planetsPerLayer: Int = 2
-        // Texture display scale range (textures are ~200px; scene is ~390pt wide).
-        static let planetScaleMin: CGFloat = 0.18
-        static let planetScaleMax: CGFloat = 0.45
-        // Slow self-rotation period in seconds.
+        // Slow self-rotation period in seconds (per planet, on its own axis).
         static let planetRotationPeriodMin: TimeInterval = 60
         static let planetRotationPeriodMax: TimeInterval = 180
+    }
+
+    /// Solar-system layout. The Sun sits at `worldCenter` (computed from scene
+    /// size in GameScene). Planet rings are scaled into a roomy universe
+    /// roughly 25× the scene width across; past Neptune is empty space.
+    enum World {
+        static let orbitTiltY: CGFloat = 0.45                // semiMinor/semiMajor → tilted ecliptic
+        static let sunDisplayDiameter: CGFloat = 600
+        // Per-planet display diameter (points).
+        static let mercuryDiameter: CGFloat = 110
+        static let venusDiameter:   CGFloat = 150
+        static let earthDiameter:   CGFloat = 165
+        static let marsDiameter:    CGFloat = 130
+        static let jupiterDiameter: CGFloat = 360
+        static let saturnDiameter:  CGFloat = 320
+        static let uranusDiameter:  CGFloat = 230
+        static let neptuneDiameter: CGFloat = 220
+        // Orbital radii in points around the Sun.
+        // Ratios follow real AU distances (Mercury 0.39, Venus 0.72,
+        // Earth 1.00, Mars 1.52, Jupiter 5.20, Saturn 9.58, Uranus 19.2,
+        // Neptune 30.05) with mild compression past Jupiter so Neptune
+        // still fits inside the playable universe. The Mars→Jupiter jump
+        // preserves the asteroid-belt gap.
+        static let orbitMercury: CGFloat = 600
+        static let orbitVenus:   CGFloat = 1100
+        static let orbitEarth:   CGFloat = 1500
+        static let orbitMars:    CGFloat = 2300
+        static let orbitJupiter: CGFloat = 4000
+        static let orbitSaturn:  CGFloat = 5400
+        static let orbitUranus:  CGFloat = 7000
+        static let orbitNeptune: CGFloat = 8500
+        // Angular speed (rad/s). Inner planets faster.
+        static let angSpeedMercury: CGFloat = 0.090
+        static let angSpeedVenus:   CGFloat = 0.060
+        static let angSpeedEarth:   CGFloat = 0.045
+        static let angSpeedMars:    CGFloat = 0.030
+        static let angSpeedJupiter: CGFloat = 0.018
+        static let angSpeedSaturn:  CGFloat = 0.012
+        static let angSpeedUranus:  CGFloat = 0.008
+        static let angSpeedNeptune: CGFloat = 0.005
+        // Per-orbit inclination range (rad). Real solar-system planets
+        // stay within ±3.5° of the ecliptic, so keep this small — the
+        // orbitTiltY perspective squash provides the 3D feel.
+        static let inclinationRange: CGFloat = 0.08
+    }
+
+    enum Camera {
+        /// Player can drift this many points off-center before the camera reacts.
+        static let deadzoneRadius: CGFloat = 36
+        /// Per-second lerp factor toward the target. Larger = snappier follow.
+        static let followLerpPerSec: CGFloat = 6
+        /// Extra padding beyond the camera viewport for enemy spawn placement.
+        static let enemySpawnViewPaddingPx: CGFloat = 96
     }
 }
 
