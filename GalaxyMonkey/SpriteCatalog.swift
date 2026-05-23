@@ -51,6 +51,18 @@ enum Sprite: String, CaseIterable {
     case uranus        = "Uranus"
     case neptune       = "Neptune"
     case glow          = "Glow"
+    // Moons — Earth's Luna, Jupiter's Galileans, Saturn's Titan.
+    case luna          = "Luna"
+    case io            = "Io"
+    case europa        = "Europa"
+    case ganymede      = "Ganymede"
+    case callisto      = "Callisto"
+    case titan         = "Titan"
+    // Asteroid-belt rock variants (chosen randomly per rock at install).
+    case rock01        = "Rock01"
+    case rock02        = "Rock02"
+    case rock03        = "Rock03"
+    case rock04        = "Rock04"
 }
 
 enum SpriteCatalog {

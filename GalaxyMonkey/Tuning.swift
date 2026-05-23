@@ -70,6 +70,11 @@ enum Tuning {
         static let fireRangePx: CGFloat = 360
         // Default score per kill. Per-type overrides live on EnemyType.
         static let pointsOnKill: Int = 100
+        // Minimum per-frame velocity (pt/s) for the visual to play the walk
+        // loop. Below this the enemy switches to the idle loop. Enemies move
+        // at ~80·speedMul pt/s baseline, so the threshold sits well below
+        // even the slowest archetype (gorilla at 40 pt/s).
+        static let walkSpeedThresholdPx: CGFloat = 12
     }
 
     enum Joystick {
@@ -89,6 +94,14 @@ enum Tuning {
         static let layer2Count: Int = 30
         static let layer1Speed: CGFloat = 0.06      // parallax factor
         static let layer2Speed: CGFloat = 0.18
+        // Twinkle pass — a small set of bright screen-locked dots that
+        // pulse asynchronously over the baked starfield. Sub-pixel bound,
+        // no parallax (these are camera-fixed "near" stars).
+        static let twinkleCount: Int = 16
+        static let twinkleRadius: CGFloat = 1.6
+        static let twinkleAlphaLow: CGFloat = 0.3
+        static let twinklePeriodMin: TimeInterval = 1.2
+        static let twinklePeriodMax: TimeInterval = 3.5
     }
 
     enum Audio {
@@ -98,6 +111,17 @@ enum Tuning {
         static let minVolume: Float = 0.05
         // Banana shot is intentionally near-silent (~95% reduction).
         static let playerShotVolume: Float = 0.05
+    }
+
+    /// First-launch defaults for user-tunable settings. The live values are
+    /// read/written through SettingsStore (UserDefaults-backed); these are
+    /// only consulted when no persisted value exists yet.
+    enum Settings {
+        static let defaultMusicVolume: Float = 0.18
+        static let defaultSFXVolume: Float = 1.0
+        static let defaultHapticsEnabled: Bool = true
+        // True = left thumb moves, right thumb aims (default twin-stick layout).
+        static let defaultJoystickLeftIsMove: Bool = true
     }
 
     enum Pickup {
@@ -181,19 +205,94 @@ enum Tuning {
         static let orbitSaturn:  CGFloat = 5400
         static let orbitUranus:  CGFloat = 7000
         static let orbitNeptune: CGFloat = 8500
-        // Angular speed (rad/s). Inner planets faster.
-        static let angSpeedMercury: CGFloat = 0.090
-        static let angSpeedVenus:   CGFloat = 0.060
-        static let angSpeedEarth:   CGFloat = 0.045
-        static let angSpeedMars:    CGFloat = 0.030
-        static let angSpeedJupiter: CGFloat = 0.018
-        static let angSpeedSaturn:  CGFloat = 0.012
-        static let angSpeedUranus:  CGFloat = 0.008
-        static let angSpeedNeptune: CGFloat = 0.005
-        // Per-orbit inclination range (rad). Real solar-system planets
-        // stay within ±3.5° of the ecliptic, so keep this small — the
-        // orbitTiltY perspective squash provides the 3D feel.
-        static let inclinationRange: CGFloat = 0.08
+        // Orrery orbit rings — faint elliptical strokes tracing each
+        // planet's track around the Sun. Vector strokes (SKShapeNode) so
+        // there's no texture rectangle to leak at large scale.
+        static let orbitRingAlpha: CGFloat = 0.085
+        static let orbitRingLineWidth: CGFloat = 1.5
+        // Sun corona — a copy of the sun sprite wrapped in an SKEffectNode
+        // with a Gaussian blur so the rasterized alpha falls off
+        // continuously past the disk. Subtle scale pulse so the star
+        // breathes. This is the "proper" halo path; the earlier raw-sprite
+        // additive approach was rejected because the texture rectangle
+        // showed at large scale.
+        static let sunCoronaBlurRadius: CGFloat = 28
+        static let sunCoronaAlpha: CGFloat = 0.55
+        static let sunCoronaPulsePeriod: TimeInterval = 6.0
+        static let sunCoronaPulseAmplitude: CGFloat = 0.04   // ±4% scale
+        // Angular speed (rad/s) per planet. Ratios are Kepler-ish (inner
+        // planets faster) but compressed so even Neptune visibly orbits
+        // in a play session. All planets start at phase 0 so the game
+        // opens on a clean conjunction line that drifts apart naturally.
+        static let angSpeedMercury: CGFloat = 0.045
+        static let angSpeedVenus:   CGFloat = 0.030
+        static let angSpeedEarth:   CGFloat = 0.022
+        static let angSpeedMars:    CGFloat = 0.015
+        static let angSpeedJupiter: CGFloat = 0.009
+        static let angSpeedSaturn:  CGFloat = 0.006
+        static let angSpeedUranus:  CGFloat = 0.004
+        static let angSpeedNeptune: CGFloat = 0.003
+        // Comets — random spawn that streak across the world on a straight
+        // chord with a particle trail. Adds non-orbital motion to the
+        // cosmos. Particles detach into world space so the trail is left
+        // behind in the comet's wake (not dragged along with the head).
+        static let cometSpawnIntervalMin: TimeInterval = 22
+        static let cometSpawnIntervalMax: TimeInterval = 48
+        // Path radius is chosen so chords pass through the inner-to-middle
+        // solar system where the player typically is (Earth at 1500,
+        // asteroid belt at ~3200, Jupiter at 4000). Far enough out to feel
+        // like an interloper; close enough that the player actually sees
+        // one occasionally.
+        static let cometPathRadius: CGFloat = 4200
+        // Max angular deviation from a 180° (origin-crossing) chord. With
+        // ±15° jitter the closest approach to origin is r·sin(7.5°) ≈
+        // 0.13·r ≈ 550pt, so comets pass through the inner planets area.
+        static let cometExitJitterRad: CGFloat = .pi / 12
+        static let cometHeadRadius: CGFloat = 3
+        static let cometTravelDurationMin: TimeInterval = 7
+        static let cometTravelDurationMax: TimeInterval = 12
+        static let cometTrailBirthRate: CGFloat = 90
+        static let cometTrailLifetime: TimeInterval = 1.4
+        static let cometInitialDelay: TimeInterval = 3   // first comet within seconds of game start
+        // Moons — Luna (Earth), Galileans (Jupiter ×4), Titan (Saturn).
+        // Diameter is the rendered point size; radius is the orbital radius
+        // around the parent planet's center in points; angular speed in
+        // rad/s. Inner moons orbit faster than outer ones (Kepler-ish).
+        enum Moons {
+            // Earth's Luna.
+            static let lunaDiameter: CGFloat = 38
+            static let lunaRadius:   CGFloat = 130
+            static let lunaSpeed:    CGFloat = 0.08
+            // Jupiter's Galileans, inside → out.
+            static let ioDiameter:       CGFloat = 32
+            static let ioRadius:         CGFloat = 240
+            static let ioSpeed:          CGFloat = 0.14
+            static let europaDiameter:   CGFloat = 28
+            static let europaRadius:     CGFloat = 295
+            static let europaSpeed:      CGFloat = 0.10
+            static let ganymedeDiameter: CGFloat = 40
+            static let ganymedeRadius:   CGFloat = 355
+            static let ganymedeSpeed:    CGFloat = 0.075
+            static let callistoDiameter: CGFloat = 36
+            static let callistoRadius:   CGFloat = 425
+            static let callistoSpeed:    CGFloat = 0.055
+            // Saturn's Titan.
+            static let titanDiameter: CGFloat = 42
+            static let titanRadius:   CGFloat = 320
+            static let titanSpeed:    CGFloat = 0.065
+        }
+        // Asteroid belt between Mars and Jupiter. The mean angular speed
+        // sits between Mars and Jupiter; each rock gets a small ±jitter
+        // so the belt churns rather than rotates as a rigid disk.
+        static let asteroidBeltInnerRadius: CGFloat = 2750
+        static let asteroidBeltOuterRadius: CGFloat = 3700
+        static let asteroidBeltCount: Int = 180
+        static let asteroidBeltAngularSpeed: CGFloat = 0.012
+        static let asteroidBeltSpeedJitter: CGFloat = 0.0035   // ±rad/s
+        static let asteroidDiameterMin: CGFloat = 5
+        static let asteroidDiameterMax: CGFloat = 18
+        static let asteroidAlphaMin: CGFloat = 0.45
+        static let asteroidAlphaMax: CGFloat = 0.9
     }
 
     enum Camera {

@@ -24,6 +24,7 @@ enum Sfx: String {
 final class AudioController {
 
     private weak var scene: SKScene?
+    private let settings: SettingsStore
     private var bgMusic: SKAudioNode?
     private var verified: Set<Sfx> = []
     private var missingSfx: Set<Sfx> = []
@@ -46,11 +47,12 @@ final class AudioController {
         #endif
     }()
 
-    init(scene: SKScene) {
+    init(scene: SKScene, settings: SettingsStore) {
         self.scene = scene
+        self.settings = settings
     }
 
-    func startMusic(filename: String = "bg_music.caf", volume: Float = 0.18) {
+    func startMusic(filename: String = "bg_music.caf") {
         if Self.isDisabled { return }
         guard scene != nil, bgMusic == nil else { return }
         guard Bundle.main.url(forResource: filename, withExtension: nil) != nil else {
@@ -60,7 +62,7 @@ final class AudioController {
         let node = SKAudioNode(fileNamed: filename)
         node.autoplayLooped = true
         node.isPositional = false
-        node.run(SKAction.changeVolume(to: volume, duration: 0))
+        node.run(SKAction.changeVolume(to: settings.musicVolume, duration: 0))
         scene?.addChild(node)
         bgMusic = node
     }
@@ -68,7 +70,21 @@ final class AudioController {
     func pauseMusic() { bgMusic?.run(SKAction.pause()) }
     func resumeMusic() { bgMusic?.run(SKAction.play()) }
 
-    /// Non-spatial SFX. Volume is applied directly.
+    /// Persists the new volume and applies it live to the playing music node.
+    func setMusicVolume(_ v: Float) {
+        let clamped = max(0, min(1, v))
+        settings.musicVolume = clamped
+        bgMusic?.run(SKAction.changeVolume(to: clamped, duration: 0))
+    }
+
+    /// Persists the new SFX volume. New play(...) calls pick it up on demand;
+    /// in-flight SFX nodes finish at their previous volume.
+    func setSFXVolume(_ v: Float) {
+        settings.sfxVolume = max(0, min(1, v))
+    }
+
+    /// Non-spatial SFX. Volume is applied directly, scaled by the user's
+    /// SFX volume preference.
     func play(_ sfx: Sfx, volume: Float = 1.0) {
         if Self.isDisabled { return }
         guard let scene else { return }
@@ -80,7 +96,7 @@ final class AudioController {
         node.autoplayLooped = false
         node.isPositional = false
         scene.addChild(node)
-        let v = max(0, min(1, volume))
+        let v = max(0, min(1, volume * settings.sfxVolume))
         node.run(SKAction.sequence([
             SKAction.changeVolume(to: v, duration: 0),
             SKAction.play(),

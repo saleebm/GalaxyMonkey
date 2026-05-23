@@ -17,7 +17,28 @@ import UIKit
 final class HUDController {
 
     static let pauseButtonNodeName = "pauseButton"
+
+    // Pause menu node names — hit-tested in GameScene.touchesBegan to drive
+    // the pause-menu state machine.
+    static let pauseMenuResumeNodeName   = "pauseMenuResume"
+    static let pauseMenuSettingsNodeName = "pauseMenuSettings"
+    static let pauseMenuQuitNodeName     = "pauseMenuQuit"
+
+    // Settings menu node names.
+    static let settingsMusicTrackNodeName    = "settingsMusicTrack"
+    static let settingsMusicThumbNodeName    = "settingsMusicThumb"
+    static let settingsSFXTrackNodeName      = "settingsSFXTrack"
+    static let settingsSFXThumbNodeName      = "settingsSFXThumb"
+    static let settingsHapticsOnNodeName     = "settingsHapticsOn"
+    static let settingsHapticsOffNodeName    = "settingsHapticsOff"
+    static let settingsJoystickLeftNodeName  = "settingsJoystickLeft"
+    static let settingsJoystickRightNodeName = "settingsJoystickRight"
+    static let settingsBackNodeName          = "settingsBack"
+
     private static let maxLivesIconSlot = 5  // pre-allocate banana hearts up to this count
+    private static let sliderTrackWidth: CGFloat = 200
+    private static let sliderTrackHeight: CGFloat = 6
+    private static let sliderThumbRadius: CGFloat = 11
 
     private weak var parent: SKNode?
     private var viewSize: CGSize
@@ -29,6 +50,18 @@ final class HUDController {
     private var pauseButton: SKSpriteNode?
     private var startPrompt: SKNode?
     private var gameOver: SKNode?
+    private var pauseMenu: SKNode?
+    private var settingsMenu: SKNode?
+    // Cached references so GameScene can move the thumbs / re-style toggles
+    // in response to touch interactions without us re-walking the tree.
+    private weak var musicThumb: SKShapeNode?
+    private weak var sfxThumb: SKShapeNode?
+    private weak var musicTrack: SKShapeNode?
+    private weak var sfxTrack: SKShapeNode?
+    private weak var hapticsOnLabel: SKLabelNode?
+    private weak var hapticsOffLabel: SKLabelNode?
+    private weak var joystickLeftLabel: SKLabelNode?
+    private weak var joystickRightLabel: SKLabelNode?
 
     init(parent: SKNode, viewSize: CGSize, initialBest: Int) {
         self.parent = parent
@@ -114,14 +147,24 @@ final class HUDController {
         let btn = SKSpriteNode(texture: tex)
         btn.setScale(scale)
         btn.name = Self.pauseButtonNodeName
-        // Top-left, below the score line.
-        btn.position = CGPoint(x: 24 + target / 2, y: viewSize.height - 92)
+        // Top-right, mirroring the lives row's right edge. Hidden until the
+        // round actually starts — the start prompt and game-over screen don't
+        // need an affordance that's a no-op there.
+        btn.position = CGPoint(x: viewSize.width - 24 - target / 2,
+                               y: viewSize.height - 92)
         btn.zPosition = 9100
+        btn.isHidden = true
         // SpriteKit only surfaces touchable nodes through accessibility when
         // they expose a name. The `name` above is already what XCUITest uses
         // for hit-testing — see GameScene.touchesBegan.
         root.addChild(btn)
         pauseButton = btn
+    }
+
+    /// Toggle the pause button's visibility. GameScene drives this based on
+    /// the run lifecycle so the affordance only appears when it does work.
+    func setPauseButtonVisible(_ visible: Bool) {
+        pauseButton?.isHidden = !visible
     }
 
     // MARK: - Start prompt
@@ -235,5 +278,270 @@ final class HUDController {
     func dismissGameOver() {
         gameOver?.removeFromParent()
         gameOver = nil
+    }
+
+    // MARK: - Pause menu
+
+    func showPauseMenu() {
+        guard let parent, pauseMenu == nil else { return }
+        let card = SKNode()
+        card.zPosition = 9300
+
+        let dim = SKShapeNode(rect: CGRect(origin: .zero, size: viewSize))
+        dim.fillColor = UIColor(white: 0, alpha: 0.55)
+        dim.strokeColor = .clear
+        card.addChild(dim)
+
+        let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+        title.text = "PAUSED"
+        title.fontSize = 42
+        title.fontColor = .white
+        title.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 + 80)
+        title.isAccessibilityElement = true
+        title.accessibilityLabel = "PAUSED"
+        card.addChild(title)
+
+        let pulse = SKAction.repeatForever(SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.55, duration: 0.7),
+            SKAction.fadeAlpha(to: 1.0, duration: 0.7),
+        ]))
+
+        let resume = pauseMenuLabel(text: "Resume",
+                                    name: Self.pauseMenuResumeNodeName,
+                                    y: viewSize.height / 2 + 10)
+        resume.run(pulse)
+        card.addChild(resume)
+
+        let settingsRow = pauseMenuLabel(text: "Settings",
+                                          name: Self.pauseMenuSettingsNodeName,
+                                          y: viewSize.height / 2 - 40)
+        card.addChild(settingsRow)
+
+        let quit = pauseMenuLabel(text: "Quit to Title",
+                                  name: Self.pauseMenuQuitNodeName,
+                                  y: viewSize.height / 2 - 90)
+        card.addChild(quit)
+
+        parent.addChild(card)
+        pauseMenu = card
+    }
+
+    func dismissPauseMenu() {
+        pauseMenu?.removeFromParent()
+        pauseMenu = nil
+    }
+
+    private func pauseMenuLabel(text: String, name: String, y: CGFloat) -> SKLabelNode {
+        let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        label.text = text
+        label.fontSize = 28
+        label.fontColor = .white
+        label.position = CGPoint(x: viewSize.width / 2, y: y)
+        label.name = name
+        label.isAccessibilityElement = true
+        label.accessibilityLabel = text
+        return label
+    }
+
+    // MARK: - Settings menu
+
+    func showSettingsMenu(store: SettingsStore) {
+        guard let parent, settingsMenu == nil else { return }
+        let card = SKNode()
+        card.zPosition = 9400
+
+        let dim = SKShapeNode(rect: CGRect(origin: .zero, size: viewSize))
+        dim.fillColor = UIColor(white: 0, alpha: 0.7)
+        dim.strokeColor = .clear
+        card.addChild(dim)
+
+        let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+        title.text = "SETTINGS"
+        title.fontSize = 42
+        title.fontColor = .white
+        title.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 + 130)
+        title.isAccessibilityElement = true
+        title.accessibilityLabel = "SETTINGS"
+        card.addChild(title)
+
+        let centerX = viewSize.width / 2
+        let labelOffset: CGFloat = -150
+        let controlOffset: CGFloat = 50
+
+        let musicY = viewSize.height / 2 + 60
+        card.addChild(rowLabel(text: "Music",
+                               position: CGPoint(x: centerX + labelOffset, y: musicY)))
+        let (mTrack, mThumb) = makeSlider(
+            trackName: Self.settingsMusicTrackNodeName,
+            thumbName: Self.settingsMusicThumbNodeName,
+            center: CGPoint(x: centerX + controlOffset, y: musicY),
+            value: store.musicVolume)
+        card.addChild(mTrack)
+        card.addChild(mThumb)
+        musicTrack = mTrack
+        musicThumb = mThumb
+
+        let sfxY = viewSize.height / 2 + 10
+        card.addChild(rowLabel(text: "SFX",
+                               position: CGPoint(x: centerX + labelOffset, y: sfxY)))
+        let (sTrack, sThumb) = makeSlider(
+            trackName: Self.settingsSFXTrackNodeName,
+            thumbName: Self.settingsSFXThumbNodeName,
+            center: CGPoint(x: centerX + controlOffset, y: sfxY),
+            value: store.sfxVolume)
+        card.addChild(sTrack)
+        card.addChild(sThumb)
+        sfxTrack = sTrack
+        sfxThumb = sThumb
+
+        let hapticsY = viewSize.height / 2 - 40
+        card.addChild(rowLabel(text: "Haptics",
+                               position: CGPoint(x: centerX + labelOffset, y: hapticsY)))
+        let (onLabel, offLabel) = makeToggle(
+            leftText: "On", leftName: Self.settingsHapticsOnNodeName,
+            rightText: "Off", rightName: Self.settingsHapticsOffNodeName,
+            center: CGPoint(x: centerX + controlOffset, y: hapticsY),
+            leftActive: store.hapticsEnabled)
+        card.addChild(onLabel)
+        card.addChild(offLabel)
+        hapticsOnLabel = onLabel
+        hapticsOffLabel = offLabel
+
+        let stickY = viewSize.height / 2 - 90
+        card.addChild(rowLabel(text: "Move Stick",
+                               position: CGPoint(x: centerX + labelOffset, y: stickY)))
+        let (leftLabel, rightLabel) = makeToggle(
+            leftText: "Left", leftName: Self.settingsJoystickLeftNodeName,
+            rightText: "Right", rightName: Self.settingsJoystickRightNodeName,
+            center: CGPoint(x: centerX + controlOffset, y: stickY),
+            leftActive: store.joystickLeftIsMove)
+        card.addChild(leftLabel)
+        card.addChild(rightLabel)
+        joystickLeftLabel = leftLabel
+        joystickRightLabel = rightLabel
+
+        let back = pauseMenuLabel(text: "Back",
+                                  name: Self.settingsBackNodeName,
+                                  y: viewSize.height / 2 - 160)
+        card.addChild(back)
+
+        parent.addChild(card)
+        settingsMenu = card
+    }
+
+    func dismissSettingsMenu() {
+        settingsMenu?.removeFromParent()
+        settingsMenu = nil
+        musicTrack = nil
+        musicThumb = nil
+        sfxTrack = nil
+        sfxThumb = nil
+        hapticsOnLabel = nil
+        hapticsOffLabel = nil
+        joystickLeftLabel = nil
+        joystickRightLabel = nil
+    }
+
+    /// Returns the on-screen extents of the music slider track in `hudRoot`
+    /// space, so GameScene can map a touch x-coord to a [0, 1] value. Returns
+    /// nil when the settings menu isn't visible.
+    func musicSliderHitRect() -> CGRect? { sliderHitRect(for: musicTrack) }
+    func sfxSliderHitRect() -> CGRect? { sliderHitRect(for: sfxTrack) }
+
+    private func sliderHitRect(for track: SKShapeNode?) -> CGRect? {
+        guard let track else { return nil }
+        let w = Self.sliderTrackWidth
+        let h: CGFloat = 44  // generous vertical hit-band beyond the visual track
+        return CGRect(x: track.position.x - w / 2,
+                      y: track.position.y - h / 2,
+                      width: w,
+                      height: h)
+    }
+
+    func updateMusicSliderThumb(value: Float) {
+        guard let track = musicTrack, let thumb = musicThumb else { return }
+        thumb.position.x = track.position.x - Self.sliderTrackWidth / 2
+            + CGFloat(max(0, min(1, value))) * Self.sliderTrackWidth
+    }
+
+    func updateSFXSliderThumb(value: Float) {
+        guard let track = sfxTrack, let thumb = sfxThumb else { return }
+        thumb.position.x = track.position.x - Self.sliderTrackWidth / 2
+            + CGFloat(max(0, min(1, value))) * Self.sliderTrackWidth
+    }
+
+    func updateHapticsToggleState(enabled: Bool) {
+        hapticsOnLabel?.alpha = enabled ? 1.0 : 0.4
+        hapticsOffLabel?.alpha = enabled ? 0.4 : 1.0
+    }
+
+    func updateJoystickToggleState(leftIsMove: Bool) {
+        joystickLeftLabel?.alpha = leftIsMove ? 1.0 : 0.4
+        joystickRightLabel?.alpha = leftIsMove ? 0.4 : 1.0
+    }
+
+    private func rowLabel(text: String, position: CGPoint) -> SKLabelNode {
+        let label = SKLabelNode(fontNamed: "AvenirNext-Medium")
+        label.text = text
+        label.fontSize = 20
+        label.fontColor = .white
+        label.horizontalAlignmentMode = .left
+        label.verticalAlignmentMode = .center
+        label.position = position
+        return label
+    }
+
+    private func makeSlider(trackName: String,
+                            thumbName: String,
+                            center: CGPoint,
+                            value: Float) -> (SKShapeNode, SKShapeNode) {
+        let track = SKShapeNode(rectOf: CGSize(width: Self.sliderTrackWidth,
+                                                height: Self.sliderTrackHeight),
+                                cornerRadius: Self.sliderTrackHeight / 2)
+        track.fillColor = UIColor(white: 1, alpha: 0.3)
+        track.strokeColor = .clear
+        track.position = center
+        track.name = trackName
+
+        let thumb = SKShapeNode(circleOfRadius: Self.sliderThumbRadius)
+        thumb.fillColor = .white
+        thumb.strokeColor = .clear
+        thumb.name = thumbName
+        let v = CGFloat(max(0, min(1, value)))
+        thumb.position = CGPoint(
+            x: center.x - Self.sliderTrackWidth / 2 + v * Self.sliderTrackWidth,
+            y: center.y)
+        return (track, thumb)
+    }
+
+    private func makeToggle(leftText: String, leftName: String,
+                            rightText: String, rightName: String,
+                            center: CGPoint,
+                            leftActive: Bool) -> (SKLabelNode, SKLabelNode) {
+        let left = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        left.text = leftText
+        left.fontSize = 22
+        left.fontColor = .white
+        left.alpha = leftActive ? 1.0 : 0.4
+        left.horizontalAlignmentMode = .center
+        left.verticalAlignmentMode = .center
+        left.position = CGPoint(x: center.x - 50, y: center.y)
+        left.name = leftName
+        left.isAccessibilityElement = true
+        left.accessibilityLabel = leftText
+
+        let right = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        right.text = rightText
+        right.fontSize = 22
+        right.fontColor = .white
+        right.alpha = leftActive ? 0.4 : 1.0
+        right.horizontalAlignmentMode = .center
+        right.verticalAlignmentMode = .center
+        right.position = CGPoint(x: center.x + 50, y: center.y)
+        right.name = rightName
+        right.isAccessibilityElement = true
+        right.accessibilityLabel = rightText
+
+        return (left, right)
     }
 }

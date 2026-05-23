@@ -29,6 +29,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var hud: HUDController!
     private var audio: AudioController!
     private var vfx: VFXPool!
+    private var haptics: HapticsController!
+    private let settings = SettingsStore()
 
     private let moveStick = VirtualJoystick(side: .left)
     private let aimStick  = VirtualJoystick(side: .right)
@@ -39,6 +41,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var elapsed: TimeInterval = 0
     private var isStarted = false
     private var isGameOver = false
+    private var isInPauseMenu = false
+    private var isInSettings = false
+    // Which settings slider is currently being dragged (nil = no drag in
+    // progress). Reset on touchesEnded/Cancelled.
+    private enum SliderDrag { case music, sfx }
+    private var activeSliderDrag: SliderDrag?
     private var score: Int = 0 {
         didSet { hud?.setScore(score) }
     }
@@ -96,13 +104,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         starfield   = Starfield(parent: cam, viewSize: size)
         planetField = PlanetField(scene: self)
-        player    = Player(scene: self)
+        haptics   = HapticsController(settings: settings)
+        player    = Player(scene: self, haptics: haptics)
         enemies   = EnemySystem(scene: self)
         bullets   = ProjectileSystem(scene: self)
         pickups   = PickupSystem(scene: self)
         hud       = HUDController(parent: hudContainer, viewSize: size, initialBest: bestScore())
-        audio     = AudioController(scene: self)
+        audio     = AudioController(scene: self, settings: settings)
         vfx       = VFXPool(scene: self)
+
+        // Apply the persisted joystick side. Default is left=move, right=aim
+        // (set at init); only flip when the user has previously chosen right.
+        if !settings.joystickLeftIsMove {
+            moveStick.setSide(.right)
+            aimStick.setSide(.left)
+        }
         // Listener tracks the camera so on-screen explosions sound right even
         // while the camera is lerping toward the player.
         audio.listenerProvider = { [weak self] in
@@ -155,12 +171,67 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     /// Called by ContentView when scenePhase drops out of `.active` (screen
-    /// lock, app switcher, Control Center, incoming call, etc.). Guard
-    /// mirrors the manual pause button so we don't pause the start prompt
-    /// or game-over overlay.
+    /// lock, app switcher, Control Center, incoming call, etc.). Always
+    /// pauses the scene — leaving it running while backgrounded produces
+    /// `IOGPUMetalError: Insufficient Permission`. Additionally pops the
+    /// pause menu when the run is active so the player sees state on return.
     func applicationDidLoseFocus() {
-        guard isStarted, !isGameOver else { return }
         isPaused = true
+        if isStarted, !isGameOver, !isInPauseMenu, !isInSettings {
+            enterPauseMenu()
+        }
+    }
+
+    /// Called by ContentView when scenePhase returns to `.active`. Only
+    /// auto-resumes when no menu is currently visible — the pause menu
+    /// raised by backgrounding stays up until the user taps Resume.
+    func applicationDidGainFocus() {
+        if !isInPauseMenu, !isInSettings {
+            isPaused = false
+        }
+    }
+
+    private func enterPauseMenu() {
+        isPaused = true
+        isInPauseMenu = true
+        moveStick.cancelAllTouches()
+        aimStick.cancelAllTouches()
+        hud.showPauseMenu()
+    }
+
+    private func dismissPauseMenusAndResume() {
+        hud.dismissPauseMenu()
+        hud.dismissSettingsMenu()
+        isInPauseMenu = false
+        isInSettings = false
+        activeSliderDrag = nil
+        // Reset the clock so the resumed frame doesn't accumulate the paused
+        // wall-clock interval (the isPaused setter override at line 52
+        // depends on transitioning false→true; the post-resume tick reads
+        // `lastUpdateTime == 0` and emits dt = 0).
+        lastUpdateTime = 0
+        isPaused = false
+    }
+
+    private func returnToStart() {
+        hud.dismissPauseMenu()
+        hud.dismissSettingsMenu()
+        isInPauseMenu = false
+        isInSettings = false
+        activeSliderDrag = nil
+        bullets.clearAll()
+        pickups.clearAll()
+        enemies.reset()
+        physicsWorld.speed = 1
+        elapsed = 0
+        score = 0
+        isGameOver = false
+        isStarted = false
+        lastUpdateTime = 0
+        player.reset()
+        isPaused = false
+        hud.setPauseButtonVisible(false)
+        hud.showStartPrompt()
     }
 
     // MARK: - Input
@@ -179,11 +250,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         #endif
 
-        // Pause toggle. Allowed any time after the game has started and
-        // before game-over so the user can step away mid-run.
+        // Menu routing must run before any gameplay-input handling. The
+        // settings overlay sits above the pause overlay, so check it first.
+        if isInSettings, let t = touches.first {
+            handleSettingsTouchBegan(touch: t)
+            return
+        }
+        if isInPauseMenu, let t = touches.first {
+            handlePauseMenuTap(touch: t)
+            return
+        }
+
+        // Pause button — only meaningful mid-run. Drops into the pause menu.
         if isStarted, !isGameOver, let t = touches.first,
            nodes(at: t.location(in: self)).contains(where: { $0.name == HUDController.pauseButtonNodeName }) {
-            isPaused = !isPaused
+            enterPauseMenu()
             return
         }
 
@@ -191,6 +272,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             isStarted = true
             lastUpdateTime = 0
             hud.dismissStartPrompt()
+            hud.setPauseButtonVisible(true)
             audio.startMusic()
             return
         }
@@ -213,18 +295,112 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isInSettings, activeSliderDrag != nil, let t = touches.first {
+            updateActiveSlider(touch: t)
+            return
+        }
         moveStick.touchesMoved(touches, in: hudRoot)
         aimStick.touchesMoved(touches, in: hudRoot)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        activeSliderDrag = nil
         moveStick.touchesEnded(touches)
         aimStick.touchesEnded(touches)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        activeSliderDrag = nil
         moveStick.touchesEnded(touches)
         aimStick.touchesEnded(touches)
+    }
+
+    // MARK: - Pause / settings menu routing
+
+    private func handlePauseMenuTap(touch t: UITouch) {
+        let hits = nodes(at: t.location(in: self))
+        if hits.contains(where: { $0.name == HUDController.pauseMenuResumeNodeName }) {
+            dismissPauseMenusAndResume()
+        } else if hits.contains(where: { $0.name == HUDController.pauseMenuSettingsNodeName }) {
+            hud.dismissPauseMenu()
+            isInPauseMenu = false
+            isInSettings = true
+            hud.showSettingsMenu(store: settings)
+        } else if hits.contains(where: { $0.name == HUDController.pauseMenuQuitNodeName }) {
+            returnToStart()
+        }
+    }
+
+    private func handleSettingsTouchBegan(touch t: UITouch) {
+        let hits = nodes(at: t.location(in: self))
+        if hits.contains(where: { $0.name == HUDController.settingsBackNodeName }) {
+            hud.dismissSettingsMenu()
+            isInSettings = false
+            isInPauseMenu = true
+            hud.showPauseMenu()
+            return
+        }
+        if hits.contains(where: { $0.name == HUDController.settingsHapticsOnNodeName }) {
+            settings.hapticsEnabled = true
+            hud.updateHapticsToggleState(enabled: true)
+            return
+        }
+        if hits.contains(where: { $0.name == HUDController.settingsHapticsOffNodeName }) {
+            settings.hapticsEnabled = false
+            hud.updateHapticsToggleState(enabled: false)
+            return
+        }
+        if hits.contains(where: { $0.name == HUDController.settingsJoystickLeftNodeName }) {
+            applyJoystickSide(leftIsMove: true)
+            return
+        }
+        if hits.contains(where: { $0.name == HUDController.settingsJoystickRightNodeName }) {
+            applyJoystickSide(leftIsMove: false)
+            return
+        }
+        // Slider hit-testing uses generous rects so the player can grab the
+        // track anywhere along its length, not only on the thumb.
+        let pInHud = t.location(in: hudRoot)
+        if let rect = hud.musicSliderHitRect(), rect.contains(pInHud) {
+            activeSliderDrag = .music
+            applySliderValue(at: pInHud, drag: .music)
+            return
+        }
+        if let rect = hud.sfxSliderHitRect(), rect.contains(pInHud) {
+            activeSliderDrag = .sfx
+            applySliderValue(at: pInHud, drag: .sfx)
+            return
+        }
+    }
+
+    private func updateActiveSlider(touch t: UITouch) {
+        guard let drag = activeSliderDrag else { return }
+        applySliderValue(at: t.location(in: hudRoot), drag: drag)
+    }
+
+    private func applySliderValue(at point: CGPoint, drag: SliderDrag) {
+        let rect: CGRect?
+        switch drag {
+        case .music: rect = hud.musicSliderHitRect()
+        case .sfx:   rect = hud.sfxSliderHitRect()
+        }
+        guard let rect, rect.width > 0 else { return }
+        let v = Float(max(0, min(1, (point.x - rect.minX) / rect.width)))
+        switch drag {
+        case .music:
+            audio.setMusicVolume(v)
+            hud.updateMusicSliderThumb(value: v)
+        case .sfx:
+            audio.setSFXVolume(v)
+            hud.updateSFXSliderThumb(value: v)
+        }
+    }
+
+    private func applyJoystickSide(leftIsMove: Bool) {
+        settings.joystickLeftIsMove = leftIsMove
+        moveStick.setSide(leftIsMove ? .left : .right)
+        aimStick.setSide(leftIsMove ? .right : .left)
+        hud.updateJoystickToggleState(leftIsMove: leftIsMove)
     }
 
     // MARK: - Update
@@ -334,8 +510,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                     vfx.spawnGlow(at: pos,
                                   scale: Tuning.VFX.glowEnemyKillScale,
                                   duration: Tuning.VFX.glowEnemyKillDuration)
-                    let gen = UIImpactFeedbackGenerator(style: .medium)
-                    gen.impactOccurred()
+                    haptics.impact(.medium)
                     pickups.trySpawnGoldenBanana(at: pos)
                 }
             }
@@ -389,8 +564,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 }
                 score += Tuning.Pickup.scoreBonus
                 audio.play(.pickup, at: player.node.position)
-                let gen = UIImpactFeedbackGenerator(style: .light)
-                gen.impactOccurred()
+                haptics.impact(.light)
             }
             return
         }
@@ -408,9 +582,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
 
         audio.play(.gameOver)
-        let gen = UINotificationFeedbackGenerator()
-        gen.notificationOccurred(.error)
+        haptics.notification(.error)
 
+        hud.setPauseButtonVisible(false)
         hud.showGameOver(score: score, best: max(score, best))
         moveStick.cancelAllTouches()
         aimStick.cancelAllTouches()
@@ -428,6 +602,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameOver = false
         lastUpdateTime = 0
         player.reset()
+        hud.setPauseButtonVisible(true)
     }
 
     private func bestScore() -> Int {

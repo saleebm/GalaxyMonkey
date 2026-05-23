@@ -16,6 +16,35 @@ enum AnimationSet: String, CaseIterable {
     case gorillaIdle   = "GorillaIdleAnim"
     case gorillaWindup = "GorillaWindupAnim"
     case bombExplosion = "BombExplosionAnim"
+    case droneSwarmIdle           = "DroneSwarmIdleAnim"
+    case plasmaJellyIdle          = "PlasmaJellyIdleAnim"
+    case preppyLeftIdle           = "PreppyLeftIdleAnim"
+    case preppyRightIdle          = "PreppyRightIdleAnim"
+    case whiteLeftIdle            = "WhiteLeftIdleAnim"
+    case whiteRightIdle           = "WhiteRightIdleAnim"
+    case shadyLeftIdle            = "ShadyLeftIdleAnim"
+    case shadyRightIdle           = "ShadyRightIdleAnim"
+    case heavyCosmonautLeftIdle   = "HeavyCosmonautLeftIdleAnim"
+    case heavyCosmonautRightIdle  = "HeavyCosmonautRightIdleAnim"
+    case astroSniperLeftIdle      = "AstroSniperLeftIdleAnim"
+    case astroSniperRightIdle     = "AstroSniperRightIdleAnim"
+    case miniBossLeftIdle         = "MiniBossLeftIdleAnim"
+    case miniBossRightIdle        = "MiniBossRightIdleAnim"
+    // Walk cycles. Used while the enemy is in motion; idle plays only when
+    // the enemy is effectively stationary (e.g. attacking from range).
+    case preppyLeftWalk           = "PreppyLeftWalkAnim"
+    case preppyRightWalk          = "PreppyRightWalkAnim"
+    case whiteLeftWalk            = "WhiteLeftWalkAnim"
+    case whiteRightWalk           = "WhiteRightWalkAnim"
+    case shadyLeftWalk            = "ShadyLeftWalkAnim"
+    case shadyRightWalk           = "ShadyRightWalkAnim"
+    case heavyCosmonautLeftWalk   = "HeavyCosmonautLeftWalkAnim"
+    case heavyCosmonautRightWalk  = "HeavyCosmonautRightWalkAnim"
+    case astroSniperLeftWalk      = "AstroSniperLeftWalkAnim"
+    case astroSniperRightWalk     = "AstroSniperRightWalkAnim"
+    // Mini-boss walk is a front-3/4 stomp with no lateral motion — one
+    // atlas serves both facings.
+    case miniBossWalk             = "MiniBossWalkAnim"
 }
 
 enum AnimationCatalog {

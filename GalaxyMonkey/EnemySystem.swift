@@ -75,15 +75,43 @@ final class EnemySystem {
         var i = 0
         while i < enemies.count {
             let e = enemies[i]
+            let prev = e.node.position
             let dx = target.x - e.node.position.x
             let dy = target.y - e.node.position.y
             let mag = max(0.0001, (dx * dx + dy * dy).squareRoot())
             e.node.position.x += dx / mag * e.speed * dtF
             e.node.position.y += dy / mag * e.speed * dtF
 
+            updateMotionState(e, prev: prev, dt: dt)
             tickAttack(e, dx: dx, dy: dy, distance: mag, dt: dt)
             i += 1
         }
+    }
+
+    /// Swaps the visual between walk and idle loops based on observed
+    /// per-frame motion. The windup action takes its own animation key, so
+    /// this won't fight a bomb-throw mid-play.
+    private func updateMotionState(_ e: Enemy, prev: CGPoint, dt: TimeInterval) {
+        guard let visual = e.visual as? SKSpriteNode, dt > 0 else { return }
+        let dxp = e.node.position.x - prev.x
+        let dyp = e.node.position.y - prev.y
+        let speed = (dxp * dxp + dyp * dyp).squareRoot() / CGFloat(dt)
+        let desired: Enemy.AnimState = (speed >= Tuning.Enemy.walkSpeedThresholdPx) ? .walk : .idle
+        guard desired != e.animState else { return }
+
+        let set: AnimationSet? = (desired == .walk)
+            ? walkAnimation(for: e.type, facingLeft: e.facingLeft)
+            : idleAnimation(for: e.type, facingLeft: e.facingLeft)
+        // Walk atlas may be absent for omni archetypes — fall back to idle
+        // rather than blanking the sprite.
+        let resolved = set ?? idleAnimation(for: e.type, facingLeft: e.facingLeft)
+        guard let resolved, let loop = AnimationCatalog.loop(resolved, frameDuration: 0.125) else {
+            e.animState = desired
+            return
+        }
+        visual.removeAction(forKey: "loop")
+        visual.run(loop, withKey: "loop")
+        e.animState = desired
     }
 
     private func tickAttack(_ e: Enemy, dx: CGFloat, dy: CGFloat, distance: CGFloat, dt: TimeInterval) {
@@ -144,13 +172,17 @@ final class EnemySystem {
             let dur = i < timings.count ? timings[i] : 0.12
             actions.append(SKAction.wait(forDuration: dur))
         }
-        actions.append(SKAction.run { [weak visual] in
+        actions.append(SKAction.run { [weak visual, weak e] in
             guard let visual else { return }
             if let loop = AnimationCatalog.loop(.gorillaIdle, frameDuration: 0.125) {
-                visual.run(loop, withKey: "idle")
+                visual.run(loop, withKey: "loop")
             }
+            // Gorilla never enters the walk state (no walk atlas), so reset
+            // the tracked state so updateMotionState doesn't try to switch
+            // back into a stale "walk".
+            e?.animState = .idle
         })
-        visual.removeAction(forKey: "idle")
+        visual.removeAction(forKey: "loop")
         visual.run(SKAction.sequence(actions), withKey: "windup")
     }
 
@@ -247,7 +279,7 @@ final class EnemySystem {
         root.position = pos
         root.zPosition = (type == .gorilla) ? 47 : 45
 
-        let visualChild = makeEnemyVisual(type: type, sprite: sprite, radius: radius)
+        let visualChild = makeEnemyVisual(type: type, facingLeft: facingLeft, sprite: sprite, radius: radius)
         root.addChild(visualChild)
 
         let body = SKPhysicsBody(circleOfRadius: radius)
@@ -269,21 +301,22 @@ final class EnemySystem {
                      attackCooldown: type.attack.initialCooldown)
     }
 
-    private func makeEnemyVisual(type: EnemyType, sprite: Sprite, radius: CGFloat) -> SKNode {
-        // Gorilla prefers the animated idle frames so the visual reads as
-        // "alive" while it stalks. Falls through to the static Gorilla
-        // imageset, then the placeholder triangle.
-        if type == .gorilla {
-            let idleFrames = AnimationCatalog.textures(for: .gorillaIdle)
-            if let first = idleFrames.first {
-                let s = SKSpriteNode(texture: first)
-                let maxDim = max(first.size().width, first.size().height)
-                if maxDim > 0 { s.setScale(radius * 2.4 / maxDim) }
-                if let loop = AnimationCatalog.loop(.gorillaIdle, frameDuration: 0.125) {
-                    s.run(loop, withKey: "idle")
-                }
-                return s
+    private func makeEnemyVisual(type: EnemyType, facingLeft: Bool, sprite: Sprite, radius: CGFloat) -> SKNode {
+        // Prefer an animated walk atlas first (enemies spawn in motion);
+        // fall back to the idle atlas, then the static imageset, then the
+        // placeholder triangle. updateMotionState swaps the loop in/out of
+        // walk/idle via the shared "loop" key as velocity changes.
+        let preferred = walkAnimation(for: type, facingLeft: facingLeft)
+            ?? idleAnimation(for: type, facingLeft: facingLeft)
+        if let set = preferred,
+           let first = AnimationCatalog.textures(for: set).first {
+            let s = SKSpriteNode(texture: first)
+            let maxDim = max(first.size().width, first.size().height)
+            if maxDim > 0 { s.setScale(radius * 2.4 / maxDim) }
+            if let loop = AnimationCatalog.loop(set, frameDuration: 0.125) {
+                s.run(loop, withKey: "loop")
             }
+            return s
         }
 
         if let tex = SpriteCatalog.texture(for: sprite) {
@@ -293,6 +326,37 @@ final class EnemySystem {
             return s
         }
         return placeholderTriangle(radius: radius)
+    }
+
+    private func idleAnimation(for type: EnemyType, facingLeft: Bool) -> AnimationSet? {
+        switch type {
+        case .gorilla:        return .gorillaIdle
+        case .droneSwarm:     return .droneSwarmIdle
+        case .plasmaJelly:    return .plasmaJellyIdle
+        case .preppy:         return facingLeft ? .preppyLeftIdle         : .preppyRightIdle
+        case .white:          return facingLeft ? .whiteLeftIdle          : .whiteRightIdle
+        case .shady:          return facingLeft ? .shadyLeftIdle          : .shadyRightIdle
+        case .heavyCosmonaut: return facingLeft ? .heavyCosmonautLeftIdle : .heavyCosmonautRightIdle
+        case .astroSniper:    return facingLeft ? .astroSniperLeftIdle    : .astroSniperRightIdle
+        case .miniBoss:       return facingLeft ? .miniBossLeftIdle       : .miniBossRightIdle
+        }
+    }
+
+    /// Walk-cycle atlas per (type, facing). Returns nil for archetypes that
+    /// don't have a walk cycle (omni floaters, boss) — callers should fall
+    /// back to the idle atlas.
+    private func walkAnimation(for type: EnemyType, facingLeft: Bool) -> AnimationSet? {
+        switch type {
+        case .preppy:         return facingLeft ? .preppyLeftWalk         : .preppyRightWalk
+        case .white:          return facingLeft ? .whiteLeftWalk          : .whiteRightWalk
+        case .shady:          return facingLeft ? .shadyLeftWalk          : .shadyRightWalk
+        case .heavyCosmonaut: return facingLeft ? .heavyCosmonautLeftWalk : .heavyCosmonautRightWalk
+        case .astroSniper:    return facingLeft ? .astroSniperLeftWalk    : .astroSniperRightWalk
+        // Front-3/4 stomp — same atlas regardless of facing.
+        case .miniBoss:       return .miniBossWalk
+        case .gorilla, .droneSwarm, .plasmaJelly:
+            return nil
+        }
     }
 
     private func placeholderTriangle(radius r: CGFloat) -> SKShapeNode {
@@ -309,6 +373,8 @@ final class EnemySystem {
     }
 
     final class Enemy {
+        enum AnimState { case walk, idle }
+
         let node: SKNode
         let type: EnemyType
         var hp: Int
@@ -317,6 +383,7 @@ final class EnemySystem {
         let facingLeft: Bool
         let visual: SKNode
         var attackCooldown: TimeInterval
+        var animState: AnimState
 
         init(node: SKNode, type: EnemyType, hp: Int, speed: CGFloat,
              radius: CGFloat, facingLeft: Bool, visual: SKNode,
@@ -329,6 +396,7 @@ final class EnemySystem {
             self.facingLeft = facingLeft
             self.visual = visual
             self.attackCooldown = attackCooldown
+            self.animState = .walk
         }
     }
 }

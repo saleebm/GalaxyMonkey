@@ -105,6 +105,39 @@ final class Starfield {
                            parallaxFactor: Tuning.Starfield.layer2Speed,
                            zPosition: -49)
         layers = [l1, l2]
+
+        installTwinkle(parent: parent, viewSize: viewSize)
+    }
+
+    /// Bright screen-locked twinkle stars layered on top of the baked
+    /// starfield. Each dot fades between full alpha and `twinkleAlphaLow`
+    /// on its own random period so the cluster pulses asynchronously.
+    /// These don't parallax — they're "near" stars locked to the
+    /// viewport, which sells the depth contrast with the baked layers.
+    private func installTwinkle(parent: SKNode, viewSize: CGSize) {
+        let radius = Tuning.Starfield.twinkleRadius
+        for _ in 0..<Tuning.Starfield.twinkleCount {
+            let dot = SKShapeNode(circleOfRadius: radius)
+            dot.fillColor = .white
+            dot.strokeColor = .clear
+            dot.zPosition = -48.5
+            // Random position across the viewport in camera-local coords.
+            dot.position = CGPoint(
+                x: CGFloat.random(in: -viewSize.width / 2 ... viewSize.width / 2),
+                y: CGFloat.random(in: -viewSize.height / 2 ... viewSize.height / 2))
+            parent.addChild(dot)
+
+            let period = TimeInterval.random(in: Tuning.Starfield.twinklePeriodMin...Tuning.Starfield.twinklePeriodMax)
+            let half = period / 2
+            let dim = SKAction.fadeAlpha(to: Tuning.Starfield.twinkleAlphaLow, duration: half)
+            dim.timingMode = .easeInEaseOut
+            let bright = SKAction.fadeAlpha(to: 1.0, duration: half)
+            bright.timingMode = .easeInEaseOut
+            // Random initial delay so the cluster desynchronizes.
+            let stagger = SKAction.wait(forDuration: TimeInterval.random(in: 0...period))
+            dot.run(SKAction.sequence([stagger,
+                                       SKAction.repeatForever(SKAction.sequence([dim, bright]))]))
+        }
     }
 
     private func makeLayer(parent: SKNode, dotCount: Int,

@@ -33,7 +33,9 @@ struct ContentView: View {
                 }
             }
             .onChange(of: scenePhase) { _, newPhase in
-                if newPhase != .active {
+                if newPhase == .active {
+                    scene?.applicationDidGainFocus()
+                } else {
                     scene?.applicationDidLoseFocus()
                 }
             }

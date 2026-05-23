@@ -29,13 +29,15 @@ final class Player {
     private var invulnRemaining: TimeInterval = 0
     private var blinkPhase: Double = 0
     private weak var scene: SKScene?
+    private let haptics: HapticsController
     private let thrusterEmitter: SKEmitterNode
 
     var onLivesChanged: ((Int) -> Void)?
     var isAlive: Bool { lives > 0 }
 
-    init(scene: SKScene) {
+    init(scene: SKScene, haptics: HapticsController) {
         self.scene = scene
+        self.haptics = haptics
         let root = SKNode()
         // Start near Earth's orbit so the player isn't inside the Sun sprite.
         root.position = CGPoint(x: scene.size.width / 2 + Tuning.World.orbitEarth,
@@ -189,8 +191,7 @@ final class Player {
         invulnRemaining = Tuning.Player.invulnDuration
         blinkPhase = 0
         onLivesChanged?(lives)
-        let gen = UINotificationFeedbackGenerator()
-        gen.notificationOccurred(.warning)
+        haptics.notification(.warning)
         return true
     }
 
