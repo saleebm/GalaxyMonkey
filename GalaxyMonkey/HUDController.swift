@@ -315,14 +315,14 @@ final class HUDController {
             SKAction.fadeAlpha(to: 1.0, duration: 0.7),
         ]))
 
-        // Resume is the primary CTA — bigger, gold-tinted (matches the title
-        // colour), and pulses. Settings + Quit stay quieter so the eye lands
-        // on Resume first.
+        // Resume is the primary CTA. Larger fontSize and a slow pulse pull
+        // the eye first; Settings + Quit stay static at 28pt. Same hierarchy
+        // recipe as the start prompt's "Tap to start" — white + pulse — so
+        // the two overlays share a CTA pattern without sharing a title style.
         let resume = pauseMenuLabel(text: "Resume",
                                     name: Self.pauseMenuResumeNodeName,
                                     y: viewSize.height / 2 + 10,
-                                    fontSize: 32,
-                                    color: UIColor(red: 1.0, green: 0.85, blue: 0.30, alpha: 1))
+                                    fontSize: 32)
         resume.run(pulse)
         card.addChild(resume)
 

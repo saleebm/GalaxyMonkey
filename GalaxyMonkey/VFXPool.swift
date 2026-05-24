@@ -25,7 +25,7 @@ final class VFXPool {
     // Glow.imageset asset, which SpriteCook generated as a fully-opaque 1024×1024
     // white square — under additive blend that read as a colored box around
     // explosions and muzzle flashes instead of a soft halo.
-    private static let haloTexture: SKTexture = {
+    static let haloTexture: SKTexture = {
         let size: CGFloat = 256
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
         let image = renderer.image { ctx in

@@ -315,24 +315,22 @@ final class PlanetField {
         head.blendMode = .add
         comet.addChild(head)
 
-        if let glowTex = SpriteCatalog.texture(for: .glow) {
-            let trail = SKEmitterNode()
-            trail.particleTexture = glowTex
-            trail.particleBirthRate = Tuning.World.cometTrailBirthRate
-            trail.particleLifetime = CGFloat(Tuning.World.cometTrailLifetime)
-            trail.particleAlpha = 0.9
-            trail.particleAlphaSpeed = -0.6
-            trail.particleScale = 0.18
-            trail.particleScaleSpeed = -0.08
-            trail.particleColor = UIColor(red: 0.82, green: 0.95, blue: 1.0, alpha: 1)
-            trail.particleColorBlendFactor = 0.85
-            trail.particleBlendMode = .add
-            trail.particleSpeed = 0
-            // Detach particles into the world so they're left behind when
-            // the comet moves on — no tail dragged with the head.
-            trail.targetNode = root
-            comet.addChild(trail)
-        }
+        let trail = SKEmitterNode()
+        trail.particleTexture = VFXPool.haloTexture
+        trail.particleBirthRate = Tuning.World.cometTrailBirthRate
+        trail.particleLifetime = CGFloat(Tuning.World.cometTrailLifetime)
+        trail.particleAlpha = 0.9
+        trail.particleAlphaSpeed = -0.6
+        trail.particleScale = 0.18
+        trail.particleScaleSpeed = -0.08
+        trail.particleColor = UIColor(red: 0.82, green: 0.95, blue: 1.0, alpha: 1)
+        trail.particleColorBlendFactor = 0.85
+        trail.particleBlendMode = .add
+        trail.particleSpeed = 0
+        // Detach particles into the world so they're left behind when
+        // the comet moves on — no tail dragged with the head.
+        trail.targetNode = root
+        comet.addChild(trail)
 
         let path = CGMutablePath()
         path.move(to: start)
