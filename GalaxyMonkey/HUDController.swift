@@ -35,6 +35,11 @@ final class HUDController {
     static let settingsJoystickRightNodeName = "settingsJoystickRight"
     static let settingsBackNodeName          = "settingsBack"
 
+    // Dim background names — tapping outside any labeled control on the
+    // overlays counts as a dismiss (Resume for pause, Back for settings).
+    static let pauseMenuDimNodeName    = "pauseMenuDim"
+    static let settingsMenuDimNodeName = "settingsMenuDim"
+
     private static let maxLivesIconSlot = 5  // pre-allocate banana hearts up to this count
     private static let sliderTrackWidth: CGFloat = 200
     private static let sliderTrackHeight: CGFloat = 6
@@ -299,6 +304,7 @@ final class HUDController {
         let dim = SKShapeNode(rect: CGRect(origin: .zero, size: viewSize))
         dim.fillColor = UIColor(white: 0, alpha: 0.55)
         dim.strokeColor = .clear
+        dim.name = Self.pauseMenuDimNodeName
         card.addChild(dim)
 
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
@@ -331,9 +337,13 @@ final class HUDController {
                                           y: viewSize.height / 2 - 40)
         card.addChild(settingsRow)
 
+        // Quit is the destructive option — sized down and muted so accidental
+        // taps are harder. The eye should still land on Resume first.
         let quit = pauseMenuLabel(text: "Quit to Title",
                                   name: Self.pauseMenuQuitNodeName,
-                                  y: viewSize.height / 2 - 90)
+                                  y: viewSize.height / 2 - 90,
+                                  fontSize: 22,
+                                  color: UIColor(white: 1, alpha: 0.55))
         card.addChild(quit)
 
         parent.addChild(card)
@@ -371,7 +381,19 @@ final class HUDController {
         let dim = SKShapeNode(rect: CGRect(origin: .zero, size: viewSize))
         dim.fillColor = UIColor(white: 0, alpha: 0.7)
         dim.strokeColor = .clear
+        dim.name = Self.settingsMenuDimNodeName
         card.addChild(dim)
+
+        // Rounded panel chrome — the form reads as a discrete dialog rather
+        // than labels floating in space. Translucent fill keeps the cosmos
+        // visible underneath; thin stroke defines the edge.
+        let panelSize = CGSize(width: 380, height: 400)
+        let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 24)
+        panel.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 - 15)
+        panel.fillColor = UIColor(white: 1, alpha: 0.05)
+        panel.strokeColor = UIColor(white: 1, alpha: 0.2)
+        panel.lineWidth = 1.5
+        card.addChild(panel)
 
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = "SETTINGS"

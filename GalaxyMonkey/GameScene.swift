@@ -47,6 +47,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // progress). Reset on touchesEnded/Cancelled.
     private enum SliderDrag { case music, sfx }
     private var activeSliderDrag: SliderDrag?
+    // Last SFX volume value at which we played a preview tap during a slider
+    // drag. Used to throttle previews: only re-emit when the value has moved
+    // by ≥ 0.05 since the last tap, so dragging doesn't spawn a hail of
+    // overlapping nodes. Reset on touchesEnded so the next grab plays
+    // immediately.
+    private var lastSFXPreviewValue: Float = -1
     private var score: Int = 0 {
         didSet { hud?.setScore(score) }
     }
@@ -316,12 +322,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         activeSliderDrag = nil
+        lastSFXPreviewValue = -1
         moveStick.touchesEnded(touches)
         aimStick.touchesEnded(touches)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         activeSliderDrag = nil
+        lastSFXPreviewValue = -1
         moveStick.touchesEnded(touches)
         aimStick.touchesEnded(touches)
     }
@@ -331,41 +339,51 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func handlePauseMenuTap(touch t: UITouch) {
         let hits = nodes(at: t.location(in: self))
         if hits.contains(where: { $0.name == HUDController.pauseMenuResumeNodeName }) {
+            haptics.impact(.light)
             dismissPauseMenusAndResume()
         } else if hits.contains(where: { $0.name == HUDController.pauseMenuSettingsNodeName }) {
+            haptics.impact(.light)
             hud.dismissPauseMenu()
             isInPauseMenu = false
             isInSettings = true
             hud.showSettingsMenu(store: settings)
         } else if hits.contains(where: { $0.name == HUDController.pauseMenuQuitNodeName }) {
+            haptics.impact(.medium)
             returnToStart()
+        } else if hits.contains(where: { $0.name == HUDController.pauseMenuDimNodeName }) {
+            // Tap on empty background = Resume. Forgiving for near-misses.
+            haptics.impact(.light)
+            dismissPauseMenusAndResume()
         }
     }
 
     private func handleSettingsTouchBegan(touch t: UITouch) {
         let hits = nodes(at: t.location(in: self))
         if hits.contains(where: { $0.name == HUDController.settingsBackNodeName }) {
-            hud.dismissSettingsMenu()
-            isInSettings = false
-            isInPauseMenu = true
-            hud.showPauseMenu()
+            exitSettingsToPauseMenu()
             return
         }
         if hits.contains(where: { $0.name == HUDController.settingsHapticsOnNodeName }) {
             settings.hapticsEnabled = true
+            // Buzz immediately after enabling so the user feels the effect.
+            haptics.impact(.light)
             hud.updateHapticsToggleState(enabled: true)
             return
         }
         if hits.contains(where: { $0.name == HUDController.settingsHapticsOffNodeName }) {
+            // Tap haptic fires under the old setting before we flip it off.
+            haptics.impact(.light)
             settings.hapticsEnabled = false
             hud.updateHapticsToggleState(enabled: false)
             return
         }
         if hits.contains(where: { $0.name == HUDController.settingsJoystickLeftNodeName }) {
+            haptics.impact(.light)
             applyJoystickSide(leftIsMove: true)
             return
         }
         if hits.contains(where: { $0.name == HUDController.settingsJoystickRightNodeName }) {
+            haptics.impact(.light)
             applyJoystickSide(leftIsMove: false)
             return
         }
@@ -382,6 +400,23 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             applySliderValue(at: pInHud, drag: .sfx)
             return
         }
+        // Tap on the dim background — treat as Back. Hit-test against the
+        // named dim node specifically rather than "any unrecognised tap" so
+        // accidental touches on the title/panel don't silently dismiss.
+        if hits.contains(where: { $0.name == HUDController.settingsMenuDimNodeName }) {
+            exitSettingsToPauseMenu()
+            return
+        }
+    }
+
+    private func exitSettingsToPauseMenu() {
+        haptics.impact(.light)
+        hud.dismissSettingsMenu()
+        isInSettings = false
+        activeSliderDrag = nil
+        lastSFXPreviewValue = -1
+        isInPauseMenu = true
+        hud.showPauseMenu()
     }
 
     private func updateActiveSlider(touch t: UITouch) {
@@ -399,11 +434,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let v = Float(max(0, min(1, (point.x - rect.minX) / rect.width)))
         switch drag {
         case .music:
+            // Music is already playing under the duck, so changing the volume
+            // is audible live — no preview tone needed.
             audio.setMusicVolume(v)
             hud.updateMusicSliderThumb(value: v)
         case .sfx:
             audio.setSFXVolume(v)
             hud.updateSFXSliderThumb(value: v)
+            // Throttled preview tap so the user hears the new volume while
+            // dragging. Only re-emit on ≥ 0.05 value-delta to avoid stacking
+            // overlapping ui_tap nodes per `touchesMoved`.
+            if abs(v - lastSFXPreviewValue) >= 0.05 {
+                audio.play(.uiTap)
+                lastSFXPreviewValue = v
+            }
         }
     }
 
