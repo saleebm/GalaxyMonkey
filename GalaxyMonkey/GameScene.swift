@@ -192,8 +192,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func enterPauseMenu() {
+        // Duck music BEFORE setting isPaused so the changeVolume action gets
+        // a chance to apply against an unpaused scene tick. The pause button
+        // hides so the menu's Resume label is the unambiguous way out.
+        audio.duckMusic()
         isPaused = true
         isInPauseMenu = true
+        hud.setPauseButtonVisible(false)
         moveStick.cancelAllTouches()
         aimStick.cancelAllTouches()
         hud.showPauseMenu()
@@ -211,6 +216,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // `lastUpdateTime == 0` and emits dt = 0).
         lastUpdateTime = 0
         isPaused = false
+        audio.unduckMusic()
+        hud.setPauseButtonVisible(true)
     }
 
     private func returnToStart() {
@@ -230,6 +237,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         lastUpdateTime = 0
         player.reset()
         isPaused = false
+        // Tear down the music node so the next `audio.startMusic()` call (on
+        // the next Tap-to-Start) spins up a fresh one. Without this, startMusic
+        // silently no-ops since bgMusic is still non-nil from the prior round.
+        audio.stopMusic()
         hud.setPauseButtonVisible(false)
         hud.showStartPrompt()
     }

@@ -174,6 +174,15 @@ final class HUDController {
         let card = SKNode()
         card.zPosition = 9100
 
+        // Light dim behind the title so the prompt reads as an overlay over
+        // the world, consistent with the pause and game-over screens. Lighter
+        // (0.3) than pause (0.55) so the cosmos behind the title still feels
+        // alive — it's an invitation, not a freeze.
+        let dim = SKShapeNode(rect: CGRect(origin: .zero, size: viewSize))
+        dim.fillColor = UIColor(white: 0, alpha: 0.3)
+        dim.strokeColor = .clear
+        card.addChild(dim)
+
         if let tex = SpriteCatalog.texture(for: .title) {
             // Sprite-based title. Cap to ~40% of the shorter scene dim so it
             // doesn't dwarf the subtitle and tap prompt in either orientation.
@@ -306,9 +315,14 @@ final class HUDController {
             SKAction.fadeAlpha(to: 1.0, duration: 0.7),
         ]))
 
+        // Resume is the primary CTA — bigger, gold-tinted (matches the title
+        // colour), and pulses. Settings + Quit stay quieter so the eye lands
+        // on Resume first.
         let resume = pauseMenuLabel(text: "Resume",
                                     name: Self.pauseMenuResumeNodeName,
-                                    y: viewSize.height / 2 + 10)
+                                    y: viewSize.height / 2 + 10,
+                                    fontSize: 32,
+                                    color: UIColor(red: 1.0, green: 0.85, blue: 0.30, alpha: 1))
         resume.run(pulse)
         card.addChild(resume)
 
@@ -331,11 +345,15 @@ final class HUDController {
         pauseMenu = nil
     }
 
-    private func pauseMenuLabel(text: String, name: String, y: CGFloat) -> SKLabelNode {
+    private func pauseMenuLabel(text: String,
+                                name: String,
+                                y: CGFloat,
+                                fontSize: CGFloat = 28,
+                                color: UIColor = .white) -> SKLabelNode {
         let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
         label.text = text
-        label.fontSize = 28
-        label.fontColor = .white
+        label.fontSize = fontSize
+        label.fontColor = color
         label.position = CGPoint(x: viewSize.width / 2, y: y)
         label.name = name
         label.isAccessibilityElement = true

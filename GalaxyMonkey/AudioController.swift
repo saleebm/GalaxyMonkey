@@ -26,6 +26,9 @@ final class AudioController {
     private weak var scene: SKScene?
     private let settings: SettingsStore
     private var bgMusic: SKAudioNode?
+    // Multiplier applied on top of `settings.musicVolume` so the pause menu
+    // can duck without overwriting the user's persisted preference.
+    private var musicDuckFactor: Float = 1.0
     private var verified: Set<Sfx> = []
     private var missingSfx: Set<Sfx> = []
     private var missingMusic: Set<String> = []
@@ -62,19 +65,47 @@ final class AudioController {
         let node = SKAudioNode(fileNamed: filename)
         node.autoplayLooped = true
         node.isPositional = false
-        node.run(SKAction.changeVolume(to: settings.musicVolume, duration: 0))
+        node.run(SKAction.changeVolume(to: effectiveMusicVolume, duration: 0))
         scene?.addChild(node)
         bgMusic = node
     }
 
-    func pauseMusic() { bgMusic?.run(SKAction.pause()) }
-    func resumeMusic() { bgMusic?.run(SKAction.play()) }
+    /// Removes the music node entirely. After this, the next `startMusic()`
+    /// call spins up a fresh node — used by Quit-to-Title so music restarts
+    /// cleanly on the next round rather than silently no-op'ing.
+    func stopMusic() {
+        bgMusic?.removeFromParent()
+        bgMusic = nil
+        musicDuckFactor = 1.0
+    }
+
+    /// Ducks background music to half the user's persisted volume. Idempotent.
+    /// Used while a pause/settings overlay is visible so the menu reads as
+    /// a paused state without going fully silent.
+    func duckMusic() {
+        musicDuckFactor = 0.5
+        applyEffectiveMusicVolume()
+    }
+
+    /// Restores music to the user's persisted volume.
+    func unduckMusic() {
+        musicDuckFactor = 1.0
+        applyEffectiveMusicVolume()
+    }
 
     /// Persists the new volume and applies it live to the playing music node.
     func setMusicVolume(_ v: Float) {
         let clamped = max(0, min(1, v))
         settings.musicVolume = clamped
-        bgMusic?.run(SKAction.changeVolume(to: clamped, duration: 0))
+        applyEffectiveMusicVolume()
+    }
+
+    private var effectiveMusicVolume: Float {
+        max(0, min(1, settings.musicVolume * musicDuckFactor))
+    }
+
+    private func applyEffectiveMusicVolume() {
+        bgMusic?.run(SKAction.changeVolume(to: effectiveMusicVolume, duration: 0))
     }
 
     /// Persists the new SFX volume. New play(...) calls pick it up on demand;
