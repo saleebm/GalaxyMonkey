@@ -12,9 +12,11 @@
 		1249886DD5D0D3DB8C8312C8 /* Starfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BED35E1E661168D6646FBD4 /* Starfield.swift */; };
 		124C3896FE2C5B186CDDBC00 /* bg_music.caf in Resources */ = {isa = PBXBuildFile; fileRef = DFDF108FDBDB77360239BB20 /* bg_music.caf */; };
 		130ACE51CB2A763A123896CF /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2325278428DF1450FBB2B8E6 /* Player.swift */; };
+		148D13DE70A3B93A3394FD39 /* ExplorationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007D5CF289C05F484E727F03 /* ExplorationView.swift */; };
 		2392B330C70EDC55F1D4B35B /* enemy_shot.caf in Resources */ = {isa = PBXBuildFile; fileRef = 04154B18FD993EC4CF5D6C07 /* enemy_shot.caf */; };
 		27C92E8CF24D41E647669D89 /* GalaxyMonkeyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E289E86CCD802D3C57405CF /* GalaxyMonkeyUITests.swift */; };
 		2BDA22CCC0151B9A5C6D06C7 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F183BE6846ADD4A05D2A1F0 /* GameScene.swift */; };
+		3894D10C2CBD81657F368D74 /* HapticsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75243331B715340EBB4C08A /* HapticsController.swift */; };
 		4340694946436C8ACF63B67F /* VirtualJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2614DEBC5FB92BADBB050642 /* VirtualJoystick.swift */; };
 		462F399E616C9985A7044890 /* HUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */; };
 		4ABCA5194F2CC8DF2ACEFD9C /* ProjectileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6474A750B95DA5BA1517AB /* ProjectileSystem.swift */; };
@@ -26,19 +28,22 @@
 		6D5B85E04D8D33D1006B60AD /* PickupSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9EA68E944DF5300452B7FB /* PickupSystem.swift */; };
 		6E6BCC805297FE6CF14F2EEF /* EnemyType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC7ABFD0E72759D4D0DA65F /* EnemyType.swift */; };
 		7071011ED9F906DB3A5F566F /* player_hit.caf in Resources */ = {isa = PBXBuildFile; fileRef = AA4DDED65343BD47F14F16F3 /* player_hit.caf */; };
+		775AA9A5C314B78A9A1ED6DD /* ExplorationControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD161AAC1441EF9A8E1E477 /* ExplorationControls.swift */; };
 		78BF4A2E50302BE467A34942 /* AudioController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA0A66DE491A42923CFAC32 /* AudioController.swift */; };
-		DD638CC28B804AC5970B5AE8 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1965AE0D46CF4ADAA6C7298E /* SettingsStore.swift */; };
-		847759591E4C43C395645E97 /* HapticsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59E561AA20214EC5B11C3EEB /* HapticsController.swift */; };
 		84910AC65F85F94C9D035D90 /* GameControllerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */; };
 		950C00EB38E9BA7866892837 /* shot.caf in Resources */ = {isa = PBXBuildFile; fileRef = F7BB4CBFC51EFDB552A09A67 /* shot.caf */; };
+		98AD651D3AA5EF979A2A4C1A /* Body.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DDA0A08020A93580EC36B84 /* Body.swift */; };
 		9AB1D09ECA6102A2ECAD4355 /* PlanetField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 919224E33146FBC0332418B7 /* PlanetField.swift */; };
 		A07362542A9B2432C7B7EE19 /* ui_tap.caf in Resources */ = {isa = PBXBuildFile; fileRef = 115F96E1FDF2F557D8DD0B49 /* ui_tap.caf */; };
 		A4E4528DF224945AC99B3B53 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D588094A391E920CFA53A23C /* LaunchScreen.storyboard */; };
+		AF6D1F83583ECCDB0FB880FA /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE685BFFC2A52DBD613625A6 /* SettingsStore.swift */; };
 		BA67EC93BD67465F2E8C219B /* SpriteCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8966079BA34B85E3103F59 /* SpriteCatalog.swift */; };
 		DEC90C190EC13A2A09DF0C9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D66BEA9382D547C5A2005DF /* Assets.xcassets */; };
 		E70DBDB3BA4151F67E7D2E95 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B247E4FA394F19DC27A5C3D /* ContentView.swift */; };
 		F26018384314630E3CE5DF87 /* AnimationCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF6A8318DC3405611127A50 /* AnimationCatalog.swift */; };
+		F260A80ED91A24D0683FCAFF /* ExplorationScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AEBD402F7A195667E22ECF9 /* ExplorationScene.swift */; };
 		F3D2AE67A0F261EA3F1A3657 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 583E831FF7EBB45EB05B82D2 /* PrivacyInfo.xcprivacy */; };
+		F68B956F3326101B6F7F9FBF /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646A877B270C64AB3FA103B8 /* Physics.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,11 +57,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		007D5CF289C05F484E727F03 /* ExplorationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationView.swift; sourceTree = "<group>"; };
 		04154B18FD993EC4CF5D6C07 /* enemy_shot.caf */ = {isa = PBXFileReference; path = enemy_shot.caf; sourceTree = "<group>"; };
 		0BED35E1E661168D6646FBD4 /* Starfield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Starfield.swift; sourceTree = "<group>"; };
+		0DD161AAC1441EF9A8E1E477 /* ExplorationControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationControls.swift; sourceTree = "<group>"; };
 		0E55F03B7E70C6E166E8A3D5 /* explosion.caf */ = {isa = PBXFileReference; path = explosion.caf; sourceTree = "<group>"; };
 		0FC7ABFD0E72759D4D0DA65F /* EnemyType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyType.swift; sourceTree = "<group>"; };
 		115F96E1FDF2F557D8DD0B49 /* ui_tap.caf */ = {isa = PBXFileReference; path = ui_tap.caf; sourceTree = "<group>"; };
+		1AEBD402F7A195667E22ECF9 /* ExplorationScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationScene.swift; sourceTree = "<group>"; };
 		1B247E4FA394F19DC27A5C3D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1D6474A750B95DA5BA1517AB /* ProjectileSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectileSystem.swift; sourceTree = "<group>"; };
 		2325278428DF1450FBB2B8E6 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
@@ -65,10 +73,10 @@
 		3904675D779ADF1B94AAFED2 /* Tuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tuning.swift; sourceTree = "<group>"; };
 		3E289E86CCD802D3C57405CF /* GalaxyMonkeyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalaxyMonkeyUITests.swift; sourceTree = "<group>"; };
 		4A9EA68E944DF5300452B7FB /* PickupSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupSystem.swift; sourceTree = "<group>"; };
+		4DDA0A08020A93580EC36B84 /* Body.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Body.swift; sourceTree = "<group>"; };
 		583E831FF7EBB45EB05B82D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5FA0A66DE491A42923CFAC32 /* AudioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioController.swift; sourceTree = "<group>"; };
-		1965AE0D46CF4ADAA6C7298E /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		59E561AA20214EC5B11C3EEB /* HapticsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsController.swift; sourceTree = "<group>"; };
+		646A877B270C64AB3FA103B8 /* Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics.swift; sourceTree = "<group>"; };
 		66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
 		6D66BEA9382D547C5A2005DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerInput.swift; sourceTree = "<group>"; };
@@ -79,7 +87,9 @@
 		A393FA1855864FDE483BCA0E /* EnemySystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemySystem.swift; sourceTree = "<group>"; };
 		AA4DDED65343BD47F14F16F3 /* player_hit.caf */ = {isa = PBXFileReference; path = player_hit.caf; sourceTree = "<group>"; };
 		ACF6A8318DC3405611127A50 /* AnimationCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationCatalog.swift; sourceTree = "<group>"; };
+		AE685BFFC2A52DBD613625A6 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		AF06D928262E8F044C4F6222 /* GalaxyMonkeyUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GalaxyMonkeyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B75243331B715340EBB4C08A /* HapticsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsController.swift; sourceTree = "<group>"; };
 		BAA3D1852D87CBCEA701B04C /* GalaxyMonkey.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GalaxyMonkey.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC80ED28CC58A5EA76EE1EAE /* GalaxyMonkeyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalaxyMonkeyApp.swift; sourceTree = "<group>"; };
 		D588094A391E920CFA53A23C /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -97,6 +107,18 @@
 				C0594368CC8380FC46EBC408 /* GalaxyMonkeyUITests */,
 				EE33B4CF49CB3D52EA4B6608 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		3EFCF09C69E3ABB9CE63700F /* Exploration */ = {
+			isa = PBXGroup;
+			children = (
+				4DDA0A08020A93580EC36B84 /* Body.swift */,
+				0DD161AAC1441EF9A8E1E477 /* ExplorationControls.swift */,
+				1AEBD402F7A195667E22ECF9 /* ExplorationScene.swift */,
+				007D5CF289C05F484E727F03 /* ExplorationView.swift */,
+				646A877B270C64AB3FA103B8 /* Physics.swift */,
+			);
+			path = Exploration;
 			sourceTree = "<group>";
 		};
 		66B5E45E483962B450A23074 /* Sounds */ = {
@@ -126,21 +148,22 @@
 				CC80ED28CC58A5EA76EE1EAE /* GalaxyMonkeyApp.swift */,
 				77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */,
 				2F183BE6846ADD4A05D2A1F0 /* GameScene.swift */,
+				B75243331B715340EBB4C08A /* HapticsController.swift */,
 				66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */,
-				59E561AA20214EC5B11C3EEB /* HapticsController.swift */,
 				D588094A391E920CFA53A23C /* LaunchScreen.storyboard */,
 				4A9EA68E944DF5300452B7FB /* PickupSystem.swift */,
 				919224E33146FBC0332418B7 /* PlanetField.swift */,
 				2325278428DF1450FBB2B8E6 /* Player.swift */,
 				583E831FF7EBB45EB05B82D2 /* PrivacyInfo.xcprivacy */,
 				1D6474A750B95DA5BA1517AB /* ProjectileSystem.swift */,
-				1965AE0D46CF4ADAA6C7298E /* SettingsStore.swift */,
+				AE685BFFC2A52DBD613625A6 /* SettingsStore.swift */,
 				8C8966079BA34B85E3103F59 /* SpriteCatalog.swift */,
 				0BED35E1E661168D6646FBD4 /* Starfield.swift */,
 				F9E707C072CB8DA34BF1E140 /* ThrusterEmitter.swift */,
 				3904675D779ADF1B94AAFED2 /* Tuning.swift */,
 				925830654BA4EC8D96911EE9 /* VFXPool.swift */,
 				2614DEBC5FB92BADBB050642 /* VirtualJoystick.swift */,
+				3EFCF09C69E3ABB9CE63700F /* Exploration */,
 				66B5E45E483962B450A23074 /* Sounds */,
 			);
 			path = GalaxyMonkey;
@@ -277,19 +300,24 @@
 			files = (
 				F26018384314630E3CE5DF87 /* AnimationCatalog.swift in Sources */,
 				78BF4A2E50302BE467A34942 /* AudioController.swift in Sources */,
+				98AD651D3AA5EF979A2A4C1A /* Body.swift in Sources */,
 				E70DBDB3BA4151F67E7D2E95 /* ContentView.swift in Sources */,
 				6A245296657074964B81146D /* EnemySystem.swift in Sources */,
 				6E6BCC805297FE6CF14F2EEF /* EnemyType.swift in Sources */,
+				775AA9A5C314B78A9A1ED6DD /* ExplorationControls.swift in Sources */,
+				F260A80ED91A24D0683FCAFF /* ExplorationScene.swift in Sources */,
+				148D13DE70A3B93A3394FD39 /* ExplorationView.swift in Sources */,
 				6628A836BB5AC1B6E19E32CE /* GalaxyMonkeyApp.swift in Sources */,
 				84910AC65F85F94C9D035D90 /* GameControllerInput.swift in Sources */,
 				2BDA22CCC0151B9A5C6D06C7 /* GameScene.swift in Sources */,
 				462F399E616C9985A7044890 /* HUDController.swift in Sources */,
-				847759591E4C43C395645E97 /* HapticsController.swift in Sources */,
+				3894D10C2CBD81657F368D74 /* HapticsController.swift in Sources */,
+				F68B956F3326101B6F7F9FBF /* Physics.swift in Sources */,
 				6D5B85E04D8D33D1006B60AD /* PickupSystem.swift in Sources */,
 				9AB1D09ECA6102A2ECAD4355 /* PlanetField.swift in Sources */,
 				130ACE51CB2A763A123896CF /* Player.swift in Sources */,
 				4ABCA5194F2CC8DF2ACEFD9C /* ProjectileSystem.swift in Sources */,
-				DD638CC28B804AC5970B5AE8 /* SettingsStore.swift in Sources */,
+				AF6D1F83583ECCDB0FB880FA /* SettingsStore.swift in Sources */,
 				BA67EC93BD67465F2E8C219B /* SpriteCatalog.swift in Sources */,
 				1249886DD5D0D3DB8C8312C8 /* Starfield.swift in Sources */,
 				6243188F7F16A4B949868FD4 /* ThrusterEmitter.swift in Sources */,
@@ -315,7 +343,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -375,7 +403,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -391,7 +419,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -457,7 +485,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -477,7 +505,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = GalaxyMonkey/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -497,7 +525,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = GalaxyMonkey/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -32,6 +32,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var haptics: HapticsController!
     private let settings = SettingsStore()
 
+    /// Set by ContentView. Invoked from the settings panel's hidden
+    /// "Exploration Mode" row — the scene has already paused itself by
+    /// the time this fires, so the SwiftUI host can swap the SpriteView
+    /// out for the RealityView without losing the player's run.
+    var onEnterExploration: (() -> Void)?
+
     private let moveStick = VirtualJoystick(side: .left)
     private let aimStick  = VirtualJoystick(side: .right)
     private let input = GameControllerInput()
@@ -361,6 +367,24 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let hits = nodes(at: t.location(in: self))
         if hits.contains(where: { $0.name == HUDController.settingsBackNodeName }) {
             exitSettingsToPauseMenu()
+            return
+        }
+        if hits.contains(where: { $0.name == HUDController.settingsExplorationEnterNodeName }) {
+            haptics.impact(.medium)
+            // Dismiss the settings overlay so it isn't peeking through on
+            // return. The scene stays paused (we don't touch isPaused) so
+            // the player's run is preserved underneath the RealityView.
+            hud.dismissSettingsMenu()
+            isInSettings = false
+            activeSliderDrag = nil
+            lastSFXPreviewValue = -1
+            // Keep isInPauseMenu = false so the pause menu doesn't
+            // re-appear when ContentView swaps back to the SpriteView;
+            // the player returning from exploration sees the unblocked
+            // (but still paused) game world for one frame, then can tap
+            // the pause button as usual.
+            isInPauseMenu = false
+            onEnterExploration?()
             return
         }
         if hits.contains(where: { $0.name == HUDController.settingsHapticsOnNodeName }) {

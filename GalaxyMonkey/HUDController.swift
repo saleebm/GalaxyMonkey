@@ -33,6 +33,7 @@ final class HUDController {
     static let settingsHapticsOffNodeName    = "settingsHapticsOff"
     static let settingsJoystickLeftNodeName  = "settingsJoystickLeft"
     static let settingsJoystickRightNodeName = "settingsJoystickRight"
+    static let settingsExplorationEnterNodeName = "settingsExplorationEnter"
     static let settingsBackNodeName          = "settingsBack"
 
     // Dim background names — tapping outside any labeled control on the
@@ -387,9 +388,10 @@ final class HUDController {
         // Rounded panel chrome — the form reads as a discrete dialog rather
         // than labels floating in space. Translucent fill keeps the cosmos
         // visible underneath; thin stroke defines the edge.
-        let panelSize = CGSize(width: 380, height: 400)
+        // Height bumped to fit the additional "Exploration Mode" row.
+        let panelSize = CGSize(width: 380, height: 460)
         let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 24)
-        panel.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 - 15)
+        panel.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 - 30)
         panel.fillColor = UIColor(white: 1, alpha: 0.05)
         panel.strokeColor = UIColor(white: 1, alpha: 0.2)
         panel.lineWidth = 1.5
@@ -460,9 +462,28 @@ final class HUDController {
         joystickLeftLabel = leftLabel
         joystickRightLabel = rightLabel
 
+        // Hidden-in-plain-sight: a 3D exploration sandbox that pauses the
+        // run and drops the player into a Newtonian solar-system flight
+        // mode. Understated row — same chrome as the others, no scary
+        // wording, no developer-tools framing.
+        let explorationY = viewSize.height / 2 - 140
+        card.addChild(rowLabel(text: "Exploration Mode",
+                               position: CGPoint(x: centerX + labelOffset, y: explorationY)))
+        let enterLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        enterLabel.text = "Enter →"
+        enterLabel.fontSize = 20
+        enterLabel.fontColor = UIColor(white: 1, alpha: 0.9)
+        enterLabel.horizontalAlignmentMode = .center
+        enterLabel.verticalAlignmentMode = .center
+        enterLabel.position = CGPoint(x: centerX + controlOffset, y: explorationY)
+        enterLabel.name = Self.settingsExplorationEnterNodeName
+        enterLabel.isAccessibilityElement = true
+        enterLabel.accessibilityLabel = "Enter exploration mode"
+        card.addChild(enterLabel)
+
         let back = pauseMenuLabel(text: "Back",
                                   name: Self.settingsBackNodeName,
-                                  y: viewSize.height / 2 - 160)
+                                  y: viewSize.height / 2 - 210)
         card.addChild(back)
 
         parent.addChild(card)
