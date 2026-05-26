@@ -2,10 +2,8 @@
 //  SettingsStore.swift
 //  GalaxyMonkey
 //
-//  UserDefaults-backed wrapper for user-tunable settings (volumes, haptics,
-//  joystick side). Reads fall back to Tuning.Settings defaults when no value
-//  is persisted yet. Writes go straight to UserDefaults and fire onChange so
-//  live UI (sliders, toggles) can stay in sync.
+//  UserDefaults-backed wrapper for user-tunable settings (volumes, haptics).
+//  Reads fall back to Tuning.Settings defaults when no value is persisted yet.
 //
 
 import Foundation
@@ -16,7 +14,6 @@ final class SettingsStore {
         static let musicVolume = "settings.musicVolume"
         static let sfxVolume = "settings.sfxVolume"
         static let hapticsEnabled = "settings.hapticsEnabled"
-        static let joystickLeftIsMove = "settings.joystickLeftIsMove"
     }
 
     private let defaults: UserDefaults
@@ -58,18 +55,6 @@ final class SettingsStore {
         }
         set {
             defaults.set(newValue, forKey: Keys.hapticsEnabled)
-        }
-    }
-
-    var joystickLeftIsMove: Bool {
-        get {
-            guard defaults.object(forKey: Keys.joystickLeftIsMove) != nil else {
-                return Tuning.Settings.defaultJoystickLeftIsMove
-            }
-            return defaults.bool(forKey: Keys.joystickLeftIsMove)
-        }
-        set {
-            defaults.set(newValue, forKey: Keys.joystickLeftIsMove)
         }
     }
 }

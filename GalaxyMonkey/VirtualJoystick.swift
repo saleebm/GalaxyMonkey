@@ -17,7 +17,7 @@ final class VirtualJoystick: SKNode {
 
     enum Side { case left, right }
 
-    private(set) var side: Side
+    let side: Side
     private let baseRadius: CGFloat
     private let thumbRadius: CGFloat
     private let deadZone: CGFloat
@@ -123,13 +123,5 @@ final class VirtualJoystick: SKNode {
         trackedTouch = nil
         vector = .zero
         setVisible(false)
-    }
-
-    /// Switches which screen half this stick claims. Any in-progress touch
-    /// is cancelled so a finger mid-drag doesn't end up stranded on the
-    /// wrong side.
-    func setSide(_ newSide: Side) {
-        cancelAllTouches()
-        side = newSide
     }
 }

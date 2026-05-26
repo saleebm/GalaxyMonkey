@@ -32,12 +32,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var haptics: HapticsController!
     private let settings = SettingsStore()
 
-    /// Set by ContentView. Invoked from the settings panel's hidden
-    /// "Exploration Mode" row — the scene has already paused itself by
-    /// the time this fires, so the SwiftUI host can swap the SpriteView
-    /// out for the RealityView without losing the player's run.
-    var onEnterExploration: (() -> Void)?
-
     private let moveStick = VirtualJoystick(side: .left)
     private let aimStick  = VirtualJoystick(side: .right)
     private let input = GameControllerInput()
@@ -59,6 +53,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // overlapping nodes. Reset on touchesEnded so the next grab plays
     // immediately.
     private var lastSFXPreviewValue: Float = -1
+    // Settings overlay gesture disambiguation. A touch starts `.undecided`;
+    // landing on a slider track commits to `.slider` immediately, crossing the
+    // vertical threshold commits to `.scroll`, and a release with no commit is
+    // a `.tap` (dispatched in touchesEnded so a vertical drag over a control
+    // scrolls instead of clicking).
+    private enum SettingsTouch { case undecided, slider, scroll }
+    private var settingsTouchPhase: SettingsTouch = .undecided
+    private var settingsTouchStartScene: CGPoint = .zero
+    private var settingsScrollLastY: CGFloat = 0
+    private static let settingsScrollThreshold: CGFloat = 10
+    // True only while a touch sequence that *began* inside the settings overlay
+    // is in flight. Guards the move/end handlers so the residual touchesEnded of
+    // the pause-menu "Settings" tap (which opens settings mid-gesture) isn't
+    // re-interpreted as a settings tap that bounces straight back to pause.
+    private var settingsTouchActive = false
     private var score: Int = 0 {
         didSet { hud?.setScore(score) }
     }
@@ -125,12 +134,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         audio     = AudioController(scene: self, settings: settings)
         vfx       = VFXPool(scene: self)
 
-        // Apply the persisted joystick side. Default is left=move, right=aim
-        // (set at init); only flip when the user has previously chosen right.
-        if !settings.joystickLeftIsMove {
-            moveStick.setSide(.right)
-            aimStick.setSide(.left)
-        }
         // Listener tracks the camera so on-screen explosions sound right even
         // while the camera is lerping toward the player.
         audio.listenerProvider = { [weak self] in
@@ -195,11 +198,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
-    /// Called by ContentView when scenePhase returns to `.active`. Only
-    /// auto-resumes when no menu is currently visible — the pause menu
-    /// raised by backgrounding stays up until the user taps Resume.
+    /// Called by ContentView when scenePhase returns to `.active`. SKView
+    /// auto-clears `scene.isPaused` on foreground, so we re-assert the pause
+    /// when a menu is open — otherwise the run would silently resume behind
+    /// the pause/settings overlay. With no menu up, the scene ticks normally
+    /// (start-prompt cosmos, game-over pulse, live play).
     func applicationDidGainFocus() {
-        if !isInPauseMenu, !isInSettings {
+        if isInPauseMenu || isInSettings {
+            isPaused = true
+        } else {
             isPaused = false
         }
     }
@@ -290,8 +297,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         #endif
 
-        // Menu routing must run before any gameplay-input handling. The
-        // settings overlay sits above the pause overlay, so check it first.
+        // A fresh gesture owns the settings overlay only if it begins there.
+        settingsTouchActive = false
+
+        // Menu routing runs before gameplay input; settings sits above pause.
         if isInSettings, let t = touches.first {
             handleSettingsTouchBegan(touch: t)
             return
@@ -335,8 +344,26 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isInSettings, activeSliderDrag != nil, let t = touches.first {
-            updateActiveSlider(touch: t)
+        if settingsTouchActive, let t = touches.first {
+            switch settingsTouchPhase {
+            case .slider:
+                updateActiveSlider(touch: t)
+            case .scroll:
+                let y = t.location(in: self).y
+                hud.panSettingsContent(byDeltaY: y - settingsScrollLastY)
+                settingsScrollLastY = y
+            case .undecided:
+                let p = t.location(in: self)
+                let dy = p.y - settingsTouchStartScene.y
+                let dx = p.x - settingsTouchStartScene.x
+                // Commit to scrolling once vertical travel dominates and clears
+                // the threshold; absorb the travel so far in the first pan.
+                if abs(dy) >= Self.settingsScrollThreshold && abs(dy) > abs(dx) {
+                    settingsTouchPhase = .scroll
+                    hud.panSettingsContent(byDeltaY: p.y - settingsScrollLastY)
+                    settingsScrollLastY = p.y
+                }
+            }
             return
         }
         moveStick.touchesMoved(touches, in: hudRoot)
@@ -344,6 +371,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if settingsTouchActive, let t = touches.first {
+            // A release that never became a scroll or slider drag is a tap.
+            if settingsTouchPhase == .undecided {
+                dispatchSettingsTap(touch: t)
+            }
+            resetSettingsTouchState()
+            return
+        }
         activeSliderDrag = nil
         lastSFXPreviewValue = -1
         moveStick.touchesEnded(touches)
@@ -351,6 +386,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if settingsTouchActive {
+            resetSettingsTouchState()
+            return
+        }
         activeSliderDrag = nil
         lastSFXPreviewValue = -1
         moveStick.touchesEnded(touches)
@@ -360,94 +399,80 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Pause / settings menu routing
 
     private func handlePauseMenuTap(touch t: UITouch) {
-        let hits = nodes(at: t.location(in: self))
-        if hits.contains(where: { $0.name == HUDController.pauseMenuResumeNodeName }) {
+        // Only the buttons act — empty space does nothing, so a stray tap can't
+        // resume the run. Generous hit rects keep the buttons easy to land on.
+        switch hud.pauseMenuHit(scenePoint: t.location(in: self), in: self) {
+        case HUDController.pauseMenuResumeNodeName:
             haptics.impact(.light)
             dismissPauseMenusAndResume()
-        } else if hits.contains(where: { $0.name == HUDController.pauseMenuSettingsNodeName }) {
+        case HUDController.pauseMenuSettingsNodeName:
             haptics.impact(.light)
             hud.dismissPauseMenu()
             isInPauseMenu = false
             isInSettings = true
             hud.showSettingsMenu(store: settings)
-        } else if hits.contains(where: { $0.name == HUDController.pauseMenuQuitNodeName }) {
+        case HUDController.pauseMenuQuitNodeName:
             haptics.impact(.medium)
             returnToStart()
-        } else if hits.contains(where: { $0.name == HUDController.pauseMenuDimNodeName }) {
-            // Tap on empty background = Resume. Forgiving for near-misses.
-            haptics.impact(.light)
-            dismissPauseMenusAndResume()
+        default:
+            break
         }
     }
 
+    /// Touch-down only classifies; it never acts on buttons. Grabbing a slider
+    /// track commits to `.slider` immediately (a horizontal drag must capture
+    /// from the first move). Otherwise the gesture stays `.undecided` until a
+    /// vertical move makes it a scroll or a release makes it a tap.
     private func handleSettingsTouchBegan(touch t: UITouch) {
-        let hits = nodes(at: t.location(in: self))
-        if hits.contains(where: { $0.name == HUDController.settingsBackNodeName }) {
-            exitSettingsToPauseMenu()
+        settingsTouchActive = true
+        settingsTouchPhase = .undecided
+        settingsTouchStartScene = t.location(in: self)
+        settingsScrollLastY = settingsTouchStartScene.y
+        activeSliderDrag = nil
+
+        guard let content = hud.settingsContentNode(),
+              hud.settingsViewportContains(scenePoint: settingsTouchStartScene, in: self) else {
             return
         }
-        if hits.contains(where: { $0.name == HUDController.settingsExplorationEnterNodeName }) {
-            haptics.impact(.medium)
-            // Dismiss the settings overlay so it isn't peeking through on
-            // return. The scene stays paused (we don't touch isPaused) so
-            // the player's run is preserved underneath the RealityView.
-            hud.dismissSettingsMenu()
-            isInSettings = false
-            activeSliderDrag = nil
-            lastSFXPreviewValue = -1
-            // Keep isInPauseMenu = false so the pause menu doesn't
-            // re-appear when ContentView swaps back to the SpriteView;
-            // the player returning from exploration sees the unblocked
-            // (but still paused) game world for one frame, then can tap
-            // the pause button as usual.
-            isInPauseMenu = false
-            onEnterExploration?()
-            return
-        }
-        if hits.contains(where: { $0.name == HUDController.settingsHapticsOnNodeName }) {
-            settings.hapticsEnabled = true
-            // Buzz immediately after enabling so the user feels the effect.
-            haptics.impact(.light)
-            hud.updateHapticsToggleState(enabled: true)
-            return
-        }
-        if hits.contains(where: { $0.name == HUDController.settingsHapticsOffNodeName }) {
-            // Tap haptic fires under the old setting before we flip it off.
-            haptics.impact(.light)
-            settings.hapticsEnabled = false
-            hud.updateHapticsToggleState(enabled: false)
-            return
-        }
-        if hits.contains(where: { $0.name == HUDController.settingsJoystickLeftNodeName }) {
-            haptics.impact(.light)
-            applyJoystickSide(leftIsMove: true)
-            return
-        }
-        if hits.contains(where: { $0.name == HUDController.settingsJoystickRightNodeName }) {
-            haptics.impact(.light)
-            applyJoystickSide(leftIsMove: false)
-            return
-        }
-        // Slider hit-testing uses generous rects so the player can grab the
-        // track anywhere along its length, not only on the thumb.
-        let pInHud = t.location(in: hudRoot)
-        if let rect = hud.musicSliderHitRect(), rect.contains(pInHud) {
+        let pInContent = content.convert(settingsTouchStartScene, from: self)
+        if let rect = hud.musicSliderHitRect(), rect.contains(pInContent) {
+            settingsTouchPhase = .slider
             activeSliderDrag = .music
-            applySliderValue(at: pInHud, drag: .music)
-            return
-        }
-        if let rect = hud.sfxSliderHitRect(), rect.contains(pInHud) {
+            applySliderValue(at: pInContent, drag: .music)
+        } else if let rect = hud.sfxSliderHitRect(), rect.contains(pInContent) {
+            settingsTouchPhase = .slider
             activeSliderDrag = .sfx
-            applySliderValue(at: pInHud, drag: .sfx)
-            return
+            applySliderValue(at: pInContent, drag: .sfx)
         }
-        // Tap on the dim background — treat as Back. Hit-test against the
-        // named dim node specifically rather than "any unrecognised tap" so
-        // accidental touches on the title/panel don't silently dismiss.
-        if hits.contains(where: { $0.name == HUDController.settingsMenuDimNodeName }) {
+    }
+
+    /// Dispatches a settings control tap on release (when the gesture wasn't a
+    /// scroll or slider drag). Controls use generous boundaries; a tap that
+    /// misses them is inert inside the panel and only returns to pause when it
+    /// lands fully outside the panel.
+    private func dispatchSettingsTap(touch t: UITouch) {
+        let scenePt = t.location(in: self)
+        if hud.settingsBackHit(scenePoint: scenePt, in: self) {
             exitSettingsToPauseMenu()
             return
         }
+        if hud.settingsViewportContains(scenePoint: scenePt, in: self),
+           let enable = hud.settingsHapticsHit(scenePoint: scenePt, in: self) {
+            haptics.impact(.light)
+            settings.hapticsEnabled = enable
+            hud.updateHapticsToggleState(enabled: enable)
+            return
+        }
+        if !hud.settingsPanelContains(scenePoint: scenePt, in: self) {
+            exitSettingsToPauseMenu()
+        }
+    }
+
+    private func resetSettingsTouchState() {
+        settingsTouchActive = false
+        settingsTouchPhase = .undecided
+        activeSliderDrag = nil
+        lastSFXPreviewValue = -1
     }
 
     private func exitSettingsToPauseMenu() {
@@ -460,11 +485,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         hud.showPauseMenu()
     }
 
+    /// Applies the active slider drag using the touch in content-local space.
     private func updateActiveSlider(touch t: UITouch) {
-        guard let drag = activeSliderDrag else { return }
-        applySliderValue(at: t.location(in: hudRoot), drag: drag)
+        guard let drag = activeSliderDrag,
+              let content = hud.settingsContentNode() else { return }
+        applySliderValue(at: content.convert(t.location(in: self), from: self), drag: drag)
     }
 
+    /// `point` is in the settings content node's local space, the same space
+    /// as the hit rects, so the scroll offset cancels out of the x mapping.
     private func applySliderValue(at point: CGPoint, drag: SliderDrag) {
         let rect: CGRect?
         switch drag {
@@ -490,13 +519,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 lastSFXPreviewValue = v
             }
         }
-    }
-
-    private func applyJoystickSide(leftIsMove: Bool) {
-        settings.joystickLeftIsMove = leftIsMove
-        moveStick.setSide(leftIsMove ? .left : .right)
-        aimStick.setSide(leftIsMove ? .right : .left)
-        hud.updateJoystickToggleState(leftIsMove: leftIsMove)
     }
 
     // MARK: - Update

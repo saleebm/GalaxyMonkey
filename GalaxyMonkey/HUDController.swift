@@ -31,13 +31,9 @@ final class HUDController {
     static let settingsSFXThumbNodeName      = "settingsSFXThumb"
     static let settingsHapticsOnNodeName     = "settingsHapticsOn"
     static let settingsHapticsOffNodeName    = "settingsHapticsOff"
-    static let settingsJoystickLeftNodeName  = "settingsJoystickLeft"
-    static let settingsJoystickRightNodeName = "settingsJoystickRight"
-    static let settingsExplorationEnterNodeName = "settingsExplorationEnter"
     static let settingsBackNodeName          = "settingsBack"
 
-    // Dim background names — tapping outside any labeled control on the
-    // overlays counts as a dismiss (Resume for pause, Back for settings).
+    // Dim backdrops behind each overlay.
     static let pauseMenuDimNodeName    = "pauseMenuDim"
     static let settingsMenuDimNodeName = "settingsMenuDim"
 
@@ -45,6 +41,10 @@ final class HUDController {
     private static let sliderTrackWidth: CGFloat = 200
     private static let sliderTrackHeight: CGFloat = 6
     private static let sliderThumbRadius: CGFloat = 11
+    // Generous tap boundaries so near-misses still land on the right control.
+    private static let togglePillSize = CGSize(width: 80, height: 42)
+    private static let backPillSize   = CGSize(width: 160, height: 46)
+    private static let pauseHitSize   = CGSize(width: 280, height: 48)
 
     private weak var parent: SKNode?
     private var viewSize: CGSize
@@ -66,8 +66,28 @@ final class HUDController {
     private weak var sfxTrack: SKShapeNode?
     private weak var hapticsOnLabel: SKLabelNode?
     private weak var hapticsOffLabel: SKLabelNode?
-    private weak var joystickLeftLabel: SKLabelNode?
-    private weak var joystickRightLabel: SKLabelNode?
+    private weak var hapticsOnPill: SKShapeNode?
+    private weak var hapticsOffPill: SKShapeNode?
+    // Scrollable settings viewport. `settingsContent` holds the control rows
+    // and pans vertically inside `settingsViewport` (an SKCropNode). The
+    // title and Back button are pinned outside it. Heights drive scroll
+    // clamping; width/height drive the hit-test bounds check in GameScene.
+    private weak var settingsContent: SKNode?
+    private weak var settingsViewport: SKCropNode?
+    private var settingsContentHeight: CGFloat = 0
+    private var settingsViewportWidth: CGFloat = 0
+    private var settingsViewportHeight: CGFloat = 0
+    // `settingsCard` and `settingsBackNode` drive the pinned-control hit tests
+    // and the panel-bounds check (taps off a control but inside the panel are
+    // inert; only taps outside the panel return to pause).
+    private weak var settingsCard: SKNode?
+    private weak var settingsBackNode: SKLabelNode?
+    private var settingsPanelRect: CGRect = .zero   // card-local
+    // Pause buttons, hit-tested with generous rects so empty-space taps no
+    // longer resume — only the buttons themselves act.
+    private weak var pauseResumeNode: SKLabelNode?
+    private weak var pauseSettingsNode: SKLabelNode?
+    private weak var pauseQuitNode: SKLabelNode?
 
     init(parent: SKNode, viewSize: CGSize, initialBest: Int) {
         self.parent = parent
@@ -322,10 +342,8 @@ final class HUDController {
             SKAction.fadeAlpha(to: 1.0, duration: 0.7),
         ]))
 
-        // Resume is the primary CTA. Larger fontSize and a slow pulse pull
-        // the eye first; Settings + Quit stay static at 28pt. Same hierarchy
-        // recipe as the start prompt's "Tap to start" — white + pulse — so
-        // the two overlays share a CTA pattern without sharing a title style.
+        // Resume is the primary CTA: bigger and pulsing. Settings sits below it,
+        // Quit is muted so accidental taps land on it least.
         let resume = pauseMenuLabel(text: "Resume",
                                     name: Self.pauseMenuResumeNodeName,
                                     y: viewSize.height / 2 + 10,
@@ -338,8 +356,6 @@ final class HUDController {
                                           y: viewSize.height / 2 - 40)
         card.addChild(settingsRow)
 
-        // Quit is the destructive option — sized down and muted so accidental
-        // taps are harder. The eye should still land on Resume first.
         let quit = pauseMenuLabel(text: "Quit to Title",
                                   name: Self.pauseMenuQuitNodeName,
                                   y: viewSize.height / 2 - 90,
@@ -347,13 +363,42 @@ final class HUDController {
                                   color: UIColor(white: 1, alpha: 0.55))
         card.addChild(quit)
 
+        pauseResumeNode = resume
+        pauseSettingsNode = settingsRow
+        pauseQuitNode = quit
+
         parent.addChild(card)
         pauseMenu = card
+    }
+
+    /// Returns the node name of the pause button under `scenePoint`, tested
+    /// against generous rects so near-misses still register. Empty space
+    /// returns nil — the run only resumes via the Resume button.
+    func pauseMenuHit(scenePoint: CGPoint, in scene: SKScene) -> String? {
+        for node in [pauseResumeNode, pauseSettingsNode, pauseQuitNode] {
+            if let node, let name = node.name,
+               rectHit(node, size: Self.pauseHitSize, scenePoint: scenePoint, in: scene) {
+                return name
+            }
+        }
+        return nil
+    }
+
+    /// Whether `scenePoint` lands within a rect of `size` centered on `node`,
+    /// evaluated in the node's parent space so it tracks any transform.
+    private func rectHit(_ node: SKNode, size: CGSize, scenePoint: CGPoint, in scene: SKScene) -> Bool {
+        guard let parent = node.parent else { return false }
+        let p = parent.convert(scenePoint, from: scene)
+        return abs(p.x - node.position.x) <= size.width / 2
+            && abs(p.y - node.position.y) <= size.height / 2
     }
 
     func dismissPauseMenu() {
         pauseMenu?.removeFromParent()
         pauseMenu = nil
+        pauseResumeNode = nil
+        pauseSettingsNode = nil
+        pauseQuitNode = nil
     }
 
     private func pauseMenuLabel(text: String,
@@ -378,6 +423,7 @@ final class HUDController {
         guard let parent, settingsMenu == nil else { return }
         let card = SKNode()
         card.zPosition = 9400
+        settingsCard = card
 
         let dim = SKShapeNode(rect: CGRect(origin: .zero, size: viewSize))
         dim.fillColor = UIColor(white: 0, alpha: 0.7)
@@ -385,106 +431,121 @@ final class HUDController {
         dim.name = Self.settingsMenuDimNodeName
         card.addChild(dim)
 
-        // Rounded panel chrome — the form reads as a discrete dialog rather
-        // than labels floating in space. Translucent fill keeps the cosmos
-        // visible underneath; thin stroke defines the edge.
-        // Height bumped to fit the additional "Exploration Mode" row.
-        let panelSize = CGSize(width: 380, height: 460)
-        let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 24)
-        panel.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 - 30)
+        let screenCenter = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2)
+
+        // Panel sized to the available (landscape) height so the dialog never
+        // overflows the short screen edge; capped so iPad doesn't get a giant
+        // card. The title and Back button are pinned to the panel's top/bottom
+        // bands; the control rows live in a scrollable viewport between them,
+        // so Back is always reachable regardless of screen height.
+        let panelW: CGFloat = 380
+        let panelH = min(viewSize.height - 24, 460)
+        let titleReserve: CGFloat = 64
+        let backReserve: CGFloat = 56
+
+        let panel = SKShapeNode(rectOf: CGSize(width: panelW, height: panelH), cornerRadius: 24)
+        panel.position = screenCenter
         panel.fillColor = UIColor(white: 1, alpha: 0.05)
         panel.strokeColor = UIColor(white: 1, alpha: 0.2)
         panel.lineWidth = 1.5
         card.addChild(panel)
+        settingsPanelRect = CGRect(x: screenCenter.x - panelW / 2,
+                                   y: screenCenter.y - panelH / 2,
+                                   width: panelW, height: panelH)
 
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = "SETTINGS"
-        title.fontSize = 42
+        title.fontSize = 36
         title.fontColor = .white
-        title.position = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 + 130)
+        title.verticalAlignmentMode = .center
+        title.position = CGPoint(x: screenCenter.x,
+                                 y: screenCenter.y + (panelH - titleReserve) / 2)
         title.isAccessibilityElement = true
         title.accessibilityLabel = "SETTINGS"
         card.addChild(title)
 
-        let centerX = viewSize.width / 2
-        let labelOffset: CGFloat = -150
-        let controlOffset: CGFloat = 50
+        let back = pauseMenuLabel(text: "Back",
+                                  name: Self.settingsBackNodeName,
+                                  y: screenCenter.y - (panelH - backReserve) / 2)
+        back.verticalAlignmentMode = .center   // center text within its pill
+        let backPill = addButtonBacking(to: back, size: Self.backPillSize)
+        backPill.fillColor = UIColor(white: 1, alpha: 0.06)
+        backPill.strokeColor = UIColor(white: 1, alpha: 0.5)
+        card.addChild(back)
+        settingsBackNode = back
 
-        let musicY = viewSize.height / 2 + 60
-        card.addChild(rowLabel(text: "Music",
-                               position: CGPoint(x: centerX + labelOffset, y: musicY)))
+        // Scrollable viewport. SKCropNode clips *rendering* to the mask but
+        // NOT hit-testing, so GameScene bounds-checks taps via
+        // `settingsViewportContains` before honoring a scrolled-away control.
+        let viewportW = panelW - 40
+        let viewportH = panelH - titleReserve - backReserve
+        let viewport = SKCropNode()
+        viewport.position = CGPoint(x: screenCenter.x,
+                                    y: screenCenter.y + (backReserve - titleReserve) / 2)
+        let mask = SKShapeNode(rectOf: CGSize(width: viewportW, height: viewportH))
+        mask.fillColor = .white
+        mask.strokeColor = .clear
+        viewport.maskNode = mask
+        card.addChild(viewport)
+
+        // Control rows live in content-local space: the origin is the viewport
+        // centre when content.position == .zero. x offsets mirror the proven
+        // pre-scroll layout (label 150pt left of centre, control 50pt right).
+        let content = SKNode()
+        viewport.addChild(content)
+
+        let rowCount = 3   // Music, SFX, Haptics
+        let rowSpacing: CGFloat = 52
+        let labelX: CGFloat = -150
+        let ctrlX: CGFloat = 50
+        let topY = viewportH / 2 - rowSpacing / 2
+        func rowY(_ i: Int) -> CGFloat { topY - CGFloat(i) * rowSpacing }
+
+        content.addChild(rowLabel(text: "Music",
+                                  position: CGPoint(x: labelX, y: rowY(0))))
         let (mTrack, mThumb) = makeSlider(
             trackName: Self.settingsMusicTrackNodeName,
             thumbName: Self.settingsMusicThumbNodeName,
-            center: CGPoint(x: centerX + controlOffset, y: musicY),
+            center: CGPoint(x: ctrlX, y: rowY(0)),
             value: store.musicVolume)
-        card.addChild(mTrack)
-        card.addChild(mThumb)
+        content.addChild(mTrack)
+        content.addChild(mThumb)
         musicTrack = mTrack
         musicThumb = mThumb
 
-        let sfxY = viewSize.height / 2 + 10
-        card.addChild(rowLabel(text: "SFX",
-                               position: CGPoint(x: centerX + labelOffset, y: sfxY)))
+        content.addChild(rowLabel(text: "SFX",
+                                  position: CGPoint(x: labelX, y: rowY(1))))
         let (sTrack, sThumb) = makeSlider(
             trackName: Self.settingsSFXTrackNodeName,
             thumbName: Self.settingsSFXThumbNodeName,
-            center: CGPoint(x: centerX + controlOffset, y: sfxY),
+            center: CGPoint(x: ctrlX, y: rowY(1)),
             value: store.sfxVolume)
-        card.addChild(sTrack)
-        card.addChild(sThumb)
+        content.addChild(sTrack)
+        content.addChild(sThumb)
         sfxTrack = sTrack
         sfxThumb = sThumb
 
-        let hapticsY = viewSize.height / 2 - 40
-        card.addChild(rowLabel(text: "Haptics",
-                               position: CGPoint(x: centerX + labelOffset, y: hapticsY)))
-        let (onLabel, offLabel) = makeToggle(
+        content.addChild(rowLabel(text: "Haptics",
+                                  position: CGPoint(x: labelX, y: rowY(2))))
+        let toggle = makeToggle(
             leftText: "On", leftName: Self.settingsHapticsOnNodeName,
             rightText: "Off", rightName: Self.settingsHapticsOffNodeName,
-            center: CGPoint(x: centerX + controlOffset, y: hapticsY),
+            center: CGPoint(x: ctrlX, y: rowY(2)),
             leftActive: store.hapticsEnabled)
-        card.addChild(onLabel)
-        card.addChild(offLabel)
-        hapticsOnLabel = onLabel
-        hapticsOffLabel = offLabel
+        content.addChild(toggle.left)
+        content.addChild(toggle.right)
+        hapticsOnLabel = toggle.left
+        hapticsOffLabel = toggle.right
+        hapticsOnPill = toggle.leftPill
+        hapticsOffPill = toggle.rightPill
 
-        let stickY = viewSize.height / 2 - 90
-        card.addChild(rowLabel(text: "Move Stick",
-                               position: CGPoint(x: centerX + labelOffset, y: stickY)))
-        let (leftLabel, rightLabel) = makeToggle(
-            leftText: "Left", leftName: Self.settingsJoystickLeftNodeName,
-            rightText: "Right", rightName: Self.settingsJoystickRightNodeName,
-            center: CGPoint(x: centerX + controlOffset, y: stickY),
-            leftActive: store.joystickLeftIsMove)
-        card.addChild(leftLabel)
-        card.addChild(rightLabel)
-        joystickLeftLabel = leftLabel
-        joystickRightLabel = rightLabel
-
-        // Hidden-in-plain-sight: a 3D exploration sandbox that pauses the
-        // run and drops the player into a Newtonian solar-system flight
-        // mode. Understated row — same chrome as the others, no scary
-        // wording, no developer-tools framing.
-        let explorationY = viewSize.height / 2 - 140
-        card.addChild(rowLabel(text: "Exploration Mode",
-                               position: CGPoint(x: centerX + labelOffset, y: explorationY)))
-        let enterLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        enterLabel.text = "Enter →"
-        enterLabel.fontSize = 20
-        enterLabel.fontColor = UIColor(white: 1, alpha: 0.9)
-        enterLabel.horizontalAlignmentMode = .center
-        enterLabel.verticalAlignmentMode = .center
-        enterLabel.position = CGPoint(x: centerX + controlOffset, y: explorationY)
-        enterLabel.name = Self.settingsExplorationEnterNodeName
-        enterLabel.isAccessibilityElement = true
-        enterLabel.accessibilityLabel = "Enter exploration mode"
-        card.addChild(enterLabel)
-
-        let back = pauseMenuLabel(text: "Back",
-                                  name: Self.settingsBackNodeName,
-                                  y: viewSize.height / 2 - 210)
-        card.addChild(back)
+        settingsContent = content
+        settingsViewport = viewport
+        settingsViewportWidth = viewportW
+        settingsViewportHeight = viewportH
+        // One rowSpacing slot per row; when ≤ the viewport height the content
+        // fits and scrolling clamps to a no-op.
+        settingsContentHeight = CGFloat(rowCount) * rowSpacing
 
         parent.addChild(card)
         settingsMenu = card
@@ -499,13 +560,70 @@ final class HUDController {
         sfxThumb = nil
         hapticsOnLabel = nil
         hapticsOffLabel = nil
-        joystickLeftLabel = nil
-        joystickRightLabel = nil
+        hapticsOnPill = nil
+        hapticsOffPill = nil
+        settingsContent = nil
+        settingsViewport = nil
+        settingsCard = nil
+        settingsBackNode = nil
+        settingsPanelRect = .zero
+        settingsContentHeight = 0
+        settingsViewportWidth = 0
+        settingsViewportHeight = 0
     }
 
-    /// Returns the on-screen extents of the music slider track in `hudRoot`
-    /// space, so GameScene can map a touch x-coord to a [0, 1] value. Returns
-    /// nil when the settings menu isn't visible.
+    /// Generous hit test for the pinned Back button.
+    func settingsBackHit(scenePoint: CGPoint, in scene: SKScene) -> Bool {
+        guard let back = settingsBackNode else { return false }
+        return rectHit(back, size: Self.backPillSize, scenePoint: scenePoint, in: scene)
+    }
+
+    /// Which haptics option a tap lands on: true = On, false = Off, nil = neither.
+    func settingsHapticsHit(scenePoint: CGPoint, in scene: SKScene) -> Bool? {
+        if let on = hapticsOnLabel, rectHit(on, size: Self.togglePillSize, scenePoint: scenePoint, in: scene) {
+            return true
+        }
+        if let off = hapticsOffLabel, rectHit(off, size: Self.togglePillSize, scenePoint: scenePoint, in: scene) {
+            return false
+        }
+        return nil
+    }
+
+    /// Whether the point is inside the dialog panel. Taps off a control but
+    /// inside the panel are inert; only taps outside it return to pause.
+    func settingsPanelContains(scenePoint: CGPoint, in scene: SKScene) -> Bool {
+        guard let card = settingsCard else { return false }
+        return settingsPanelRect.contains(card.convert(scenePoint, from: scene))
+    }
+
+    /// The node holding the scrollable settings rows. GameScene uses it to
+    /// convert touches into content-local space (which absorbs the pan
+    /// offset) for slider hit-testing. Nil when settings isn't visible.
+    func settingsContentNode() -> SKNode? { settingsContent }
+
+    /// Pans the settings content vertically, clamped so it can't scroll past
+    /// its extents. `dy` is the touch's scene-space y-delta since the last
+    /// move; content follows the finger (drag up reveals lower rows). When
+    /// the content fits the viewport this is a no-op (maxScroll == 0).
+    func panSettingsContent(byDeltaY dy: CGFloat) {
+        guard let content = settingsContent else { return }
+        let maxScroll = max(0, settingsContentHeight - settingsViewportHeight)
+        content.position.y = max(0, min(content.position.y + dy, maxScroll))
+    }
+
+    /// Whether a scene-space point falls inside the scrollable viewport.
+    /// Required because SKCropNode clips rendering but not `nodes(at:)`, so a
+    /// row scrolled out of view would otherwise still register taps.
+    func settingsViewportContains(scenePoint: CGPoint, in scene: SKScene) -> Bool {
+        guard let vp = settingsViewport else { return false }
+        let p = vp.convert(scenePoint, from: scene)
+        return abs(p.x) <= settingsViewportWidth / 2
+            && abs(p.y) <= settingsViewportHeight / 2
+    }
+
+    /// Slider track extents in *content-local* space (the space GameScene maps
+    /// touches into via `settingsContentNode`). Building from `track.position`
+    /// keeps the rect correct under any scroll offset. Nil when not visible.
     func musicSliderHitRect() -> CGRect? { sliderHitRect(for: musicTrack) }
     func sfxSliderHitRect() -> CGRect? { sliderHitRect(for: sfxTrack) }
 
@@ -532,13 +650,8 @@ final class HUDController {
     }
 
     func updateHapticsToggleState(enabled: Bool) {
-        hapticsOnLabel?.alpha = enabled ? 1.0 : 0.4
-        hapticsOffLabel?.alpha = enabled ? 0.4 : 1.0
-    }
-
-    func updateJoystickToggleState(leftIsMove: Bool) {
-        joystickLeftLabel?.alpha = leftIsMove ? 1.0 : 0.4
-        joystickRightLabel?.alpha = leftIsMove ? 0.4 : 1.0
+        styleToggleOption(label: hapticsOnLabel, pill: hapticsOnPill, active: enabled)
+        styleToggleOption(label: hapticsOffLabel, pill: hapticsOffPill, active: !enabled)
     }
 
     private func rowLabel(text: String, position: CGPoint) -> SKLabelNode {
@@ -578,31 +691,56 @@ final class HUDController {
     private func makeToggle(leftText: String, leftName: String,
                             rightText: String, rightName: String,
                             center: CGPoint,
-                            leftActive: Bool) -> (SKLabelNode, SKLabelNode) {
-        let left = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        left.text = leftText
-        left.fontSize = 22
-        left.fontColor = .white
-        left.alpha = leftActive ? 1.0 : 0.4
-        left.horizontalAlignmentMode = .center
-        left.verticalAlignmentMode = .center
-        left.position = CGPoint(x: center.x - 50, y: center.y)
-        left.name = leftName
-        left.isAccessibilityElement = true
-        left.accessibilityLabel = leftText
+                            leftActive: Bool)
+        -> (left: SKLabelNode, right: SKLabelNode, leftPill: SKShapeNode, rightPill: SKShapeNode) {
+        let left = toggleLabel(text: leftText, name: leftName,
+                               position: CGPoint(x: center.x - 46, y: center.y))
+        let right = toggleLabel(text: rightText, name: rightName,
+                                position: CGPoint(x: center.x + 46, y: center.y))
+        let leftPill = addButtonBacking(to: left, size: Self.togglePillSize)
+        let rightPill = addButtonBacking(to: right, size: Self.togglePillSize)
+        styleToggleOption(label: left, pill: leftPill, active: leftActive)
+        styleToggleOption(label: right, pill: rightPill, active: !leftActive)
+        return (left, right, leftPill, rightPill)
+    }
 
-        let right = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        right.text = rightText
-        right.fontSize = 22
-        right.fontColor = .white
-        right.alpha = leftActive ? 0.4 : 1.0
-        right.horizontalAlignmentMode = .center
-        right.verticalAlignmentMode = .center
-        right.position = CGPoint(x: center.x + 50, y: center.y)
-        right.name = rightName
-        right.isAccessibilityElement = true
-        right.accessibilityLabel = rightText
+    private func toggleLabel(text: String, name: String, position: CGPoint) -> SKLabelNode {
+        let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        label.text = text
+        label.fontSize = 20
+        label.horizontalAlignmentMode = .center
+        label.verticalAlignmentMode = .center
+        label.position = position
+        label.name = name
+        label.isAccessibilityElement = true
+        label.accessibilityLabel = text
+        return label
+    }
 
-        return (left, right)
+    /// Selected = solid fill with dark text; unselected = outline with light
+    /// text. The fill/outline contrast reads as the active choice.
+    private func styleToggleOption(label: SKLabelNode?, pill: SKShapeNode?, active: Bool) {
+        guard let label, let pill else { return }
+        if active {
+            pill.fillColor = UIColor(white: 0.96, alpha: 1)
+            pill.strokeColor = .clear
+            label.fontColor = UIColor(red: 0.05, green: 0.06, blue: 0.12, alpha: 1)
+        } else {
+            pill.fillColor = UIColor(white: 1, alpha: 0.06)
+            pill.strokeColor = UIColor(white: 1, alpha: 0.5)
+            label.fontColor = UIColor(white: 1, alpha: 0.85)
+        }
+    }
+
+    /// Adds a rounded "button" backing behind a label so the tap area is
+    /// visible. Drawn behind the text; the caller styles fill/stroke.
+    @discardableResult
+    private func addButtonBacking(to label: SKLabelNode, size: CGSize) -> SKShapeNode {
+        let pill = SKShapeNode(rectOf: size, cornerRadius: 11)
+        pill.lineWidth = 1.5
+        pill.isAntialiased = true
+        pill.zPosition = -1
+        label.addChild(pill)
+        return pill
     }
 }
