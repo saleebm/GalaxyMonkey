@@ -93,4 +93,70 @@ final class GalaxyMonkeyUITests: XCTestCase {
         // pause button should re-appear and be tappable.
         XCTAssertTrue(pauseBtn.waitForExistence(timeout: 3))
     }
+
+    func testPauseFromInGameShowsMenu() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.otherElements["Tap to start"].tap()
+        app.otherElements["debugForcePause"].tap()
+
+        XCTAssertTrue(app.otherElements["PAUSED"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["Resume"].exists)
+        XCTAssertTrue(app.otherElements["Settings"].exists)
+        XCTAssertTrue(app.otherElements["Quit to Title"].exists)
+    }
+
+    func testPauseResumeReturnsToGameplay() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.otherElements["Tap to start"].tap()
+        app.otherElements["debugForcePause"].tap()
+
+        let resume = app.otherElements["Resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 2))
+        resume.tap()
+
+        XCTAssertFalse(app.otherElements["Resume"].exists)
+        XCTAssertFalse(app.otherElements["PAUSED"].exists)
+    }
+
+    func testSettingsOpensAndBackReturnsToPause() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.otherElements["Tap to start"].tap()
+        app.otherElements["debugForcePause"].tap()
+
+        let settingsRow = app.otherElements["Settings"]
+        XCTAssertTrue(settingsRow.waitForExistence(timeout: 2))
+        settingsRow.tap()
+
+        XCTAssertTrue(app.otherElements["SETTINGS"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["On"].exists)
+        XCTAssertTrue(app.otherElements["Off"].exists)
+        XCTAssertTrue(app.otherElements["Left"].exists)
+        XCTAssertTrue(app.otherElements["Right"].exists)
+
+        let back = app.otherElements["Back"]
+        XCTAssertTrue(back.exists)
+        back.tap()
+
+        XCTAssertTrue(app.otherElements["Resume"].waitForExistence(timeout: 2))
+    }
+
+    func testQuitFromPauseReturnsToTitle() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.otherElements["Tap to start"].tap()
+        app.otherElements["debugForcePause"].tap()
+
+        let quit = app.otherElements["Quit to Title"]
+        XCTAssertTrue(quit.waitForExistence(timeout: 2))
+        quit.tap()
+
+        XCTAssertTrue(app.otherElements["Tap to start"].waitForExistence(timeout: 2))
+    }
 }

@@ -45,3 +45,62 @@ Manual passes for the next session:
 - Enemy spawn pacing — `Tuning.Enemy.spawnIntervalStart` / `…End`.
 - Invulnerability flicker length — `Tuning.Player.invulnDuration` /
   `invulnBlinkHz`.
+
+## Device verify: IOGPUMetalError on backgrounding
+
+### Why
+
+Backgrounding the app used to surface `IOGPUMetalError: Insufficient
+Permission` in the device console as Metal kept rendering after the
+app lost focus. The pause-on-focus-loss path in
+`GameScene.applicationDidLoseFocus()` is the fix; this section is
+the manual gate that confirms the regression stays fixed on hardware.
+
+### Prereqs
+
+- iOS 17+ device paired and trusted to the host Mac.
+- Console.app open with the device selected. Filter:
+  process `GalaxyMonkey` AND text `IOGPU OR Metal OR MTL`.
+- Launch via `./run-device.sh`.
+
+### Repro A — background from start prompt
+
+1. Launch the app.
+2. Confirm "Tap to start" is visible.
+3. Swipe up to the home screen (do not tap start first).
+4. Wait 10 seconds.
+5. Foreground the app from the app switcher.
+
+**Pass:** no `IOGPUMetalError` lines in the console after the
+foreground event. App returns to the start prompt.
+
+### Repro B — background mid-run
+
+1. Launch, tap to start, play for ~5 seconds.
+2. Swipe up to the home screen.
+3. Wait 10 seconds.
+4. Foreground.
+
+**Pass:** pause menu is visible on return; no `IOGPUMetalError` in
+the console. (Pause-on-focus-loss is intentional — the player
+resumes via the Resume label.)
+
+### Repro C — background on game-over overlay
+
+1. Launch, tap to start.
+2. In a DEBUG build, tap the small red `debugForceGameOver` label
+   in the top-left corner to force the game-over screen.
+3. Swipe up to the home screen.
+4. Wait 10 seconds.
+5. Foreground.
+
+**Pass:** the game-over overlay is still visible; no
+`IOGPUMetalError` in the console.
+
+### If it reproduces
+
+- Capture a sysdiagnose
+  (Settings → Privacy & Security → Analytics & Improvements).
+- Note iOS version, device model, and the console line range
+  around the foreground event.
+- File a follow-up issue or bead with the captured logs attached.

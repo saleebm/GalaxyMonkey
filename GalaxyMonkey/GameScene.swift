@@ -175,6 +175,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         #if DEBUG
         installDebugForceGameOver()
+        installDebugForcePause()
         #endif
     }
 
@@ -269,6 +270,22 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 hud.dismissStartPrompt()
             }
             triggerGameOver()
+            return
+        }
+        if let t = touches.first,
+           nodes(at: t.location(in: self)).contains(where: { $0.name == Self.debugForcePauseLabel }) {
+            // Auto-start so XCUI can reach the pause menu without first
+            // tapping the start prompt and the pause button. Mirrors the
+            // debugForceGameOver auto-start above.
+            if !isStarted {
+                isStarted = true
+                lastUpdateTime = 0
+                hud.dismissStartPrompt()
+                hud.setPauseButtonVisible(true)
+            }
+            if isStarted, !isGameOver, !isInPauseMenu, !isInSettings {
+                enterPauseMenu()
+            }
             return
         }
         #endif
@@ -736,6 +753,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     #if DEBUG
     private static let debugForceGameOverLabel = "debugForceGameOver"
+    private static let debugForcePauseLabel = "debugForcePause"
 
     private func installDebugForceGameOver() {
         // SKLabelNode is the only node type SpriteKit surfaces to XCUITest
@@ -749,6 +767,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.horizontalAlignmentMode = .left
         node.verticalAlignmentMode = .top
         node.position = CGPoint(x: 4, y: size.height - 4)
+        node.zPosition = 10_000
+        hudRoot.addChild(node)
+    }
+
+    private func installDebugForcePause() {
+        // Sibling of debugForceGameOver; offset down so the two labels
+        // don't overlap. Lets XCUI drop into the pause menu without
+        // hit-testing the sprite-based pause button.
+        let node = SKLabelNode(text: Self.debugForcePauseLabel)
+        node.name = Self.debugForcePauseLabel
+        node.fontSize = 10
+        node.fontColor = UIColor(red: 1, green: 0, blue: 0, alpha: 0.55)
+        node.horizontalAlignmentMode = .left
+        node.verticalAlignmentMode = .top
+        node.position = CGPoint(x: 4, y: size.height - 18)
         node.zPosition = 10_000
         hudRoot.addChild(node)
     }
