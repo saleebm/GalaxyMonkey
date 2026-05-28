@@ -30,7 +30,7 @@ values live in [metadata.md](./metadata.md). The privacy policy page is
 
 ## 2. Capture screenshots
 
-Required sizes (universal app): **6.9" iPhone** and **13" iPad**, landscape.
+iPhone-only app — only the **6.9" iPhone** slot is required (no iPad), landscape.
 
 ```bash
 scripts/capture-screenshots.sh
@@ -81,7 +81,7 @@ Go to **My Apps → Galaxy Monkey**. Using [metadata.md](./metadata.md):
    Infrequent/Mild, everything else None/No) → ≈ 9+.
 4. **1.0.0 version page:** promotional text, description, keywords, support
    URL, privacy policy URL, copyright, "What's New."
-5. **Screenshots:** drag in the 6.9" iPhone and 13" iPad captures.
+5. **Screenshots:** drag in the 6.9" iPhone captures (and the App Preview video).
 6. **Build:** click **+** / "Add Build" and select the processed `1.0.0 (1)`.
 
 ## 5. Submit for review

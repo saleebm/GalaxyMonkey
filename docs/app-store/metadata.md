@@ -12,7 +12,7 @@ Galaxy Monkey**. Field character limits are noted in parentheses.
 | Team ID | `L7U86T3YRV` |
 | Version (CFBundleShortVersionString) | `1.0.0` |
 | Build (CFBundleVersion) | `1` |
-| Platforms | iPhone + iPad (universal), iOS 18.0+ |
+| Platforms | iPhone only (`TARGETED_DEVICE_FAMILY = 1`), iOS 18.0+ |
 | Orientation | Landscape only |
 
 ## App Information (app-level)
@@ -48,7 +48,7 @@ Galaxy Monkey**. Field character limits are noted in parentheses.
   • Endless escalating waves and gorilla boss fights
   • Golden banana pickups and score chasing
   • Punchy haptics, arcade SFX, and a black-hole warp on every kill
-  • Built natively with SpriteKit for iPhone and iPad
+  • Built natively with SpriteKit for iPhone
 
   No ads. No tracking. No accounts. Just pure arcade dogfighting.
   ```
