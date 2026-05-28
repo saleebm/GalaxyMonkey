@@ -664,7 +664,20 @@
       "frame_size": [640, 640],
       "fps": 8,
       "loops": true,
-      "notes": "DEFERRED + MOVED OUT OF xcassets 2026-05-28. These are the OLD angry/bomb gorilla idle frames — must NOT be re-bundled as-is. Moved aside so makeEnemyVisual falls back to the static friendly Gorilla.imageset. TODO: regenerate from gorilla_friendly_canonical (f6acc93b) via animate_game_art once the SpriteCook animation service recovers (it returned network_error on 2026-05-28), slice, drop frame 1, and drop the new atlas back into GalaxyMonkey/Assets.xcassets/GorillaIdleAnim.spriteatlas/."
+      "notes": "OLD angry/bomb gorilla idle frames. SUPERSEDED 2026-05-28 by gorilla_friendly_idle_anim (98f63bf1). Kept in sprite-pipeline/_deferred_anims/ for reference only."
+    },
+    {
+      "asset_id": "98f63bf1-e1b7-45d3-aff0-a26c191e8633",
+      "label": "gorilla_friendly_idle_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaIdleAnim.spriteatlas/",
+      "output_format": "spritesheet",
+      "animated_from": "f6acc93b-89b3-49b4-8aa5-c36837bd2f48",
+      "frames": 7,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": true,
+      "notes": "ACTIVE friendly idle (generated via MCP animate 2026-05-28; service was intermittent). Calm breathing loop, banana-held. 5120x640 PNG spritesheet sliced via sips; frame 1 dropped (two-gorilla glitch) -> 7 frames as imagesets 01-07. Subject framing (~0.89w x 0.99h) matches gorilla_friendly_windup_throw_anim, so idle->windup no longer changes the gorilla's rendered size. Replaces the 1024px static still as the gorilla's idle (still kept as fallback in Gorilla.imageset)."
     },
     {
       "asset_id": "26e861ae-90e6-40a5-aebb-a52f907ba147",
