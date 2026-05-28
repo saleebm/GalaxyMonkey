@@ -161,10 +161,12 @@ final class EnemySystem {
         }
         // Per-frame timing curve: slow anticipation → quick release →
         // soft follow-through. Smooths out the 8fps frame-pop by holding
-        // key poses longer and rushing the throw itself. Sums to ~1.0s
+        // key poses longer and rushing the throw itself. Sums to ~0.8s
         // so the +1.0s cooldown padding in `tick` still lines up.
         let timings: [TimeInterval] = [0.16, 0.14, 0.12, 0.10, 0.08, 0.08, 0.14, 0.18]
-        let releaseIdx = min(5, frames.count - 1)
+        // The friendly windup-throw atlas (7 frames) releases the banana on
+        // frame index 3 (arm snaps forward, banana leaves the hand).
+        let releaseIdx = min(3, frames.count - 1)
 
         var actions: [SKAction] = []
         for i in 0..<frames.count {

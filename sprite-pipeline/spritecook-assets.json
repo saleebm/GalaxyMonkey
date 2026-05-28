@@ -85,12 +85,26 @@
       "asset_id": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
       "label": "gorilla_canonical",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/Gorilla.imageset/gorilla_sc.png",
+      "asset_path": null,
       "output_format": "still",
       "model": "gemini-3.1-flash-image-preview",
       "prompt": "Angry cartoon space gorilla boss enemy floating in zero-g, front view, beefy arms holding a small round bomb in one fist, glowing red eyes, dark gray fur with metallic harness, cartoon stylized, transparent background",
       "size": [256, 256],
-      "notes": "Style anchor — passed as reference_asset_id for every new enemy generation."
+      "notes": "Immutable enemy STYLE ANCHOR — still passed as reference_asset_id for every new enemy generation. The angry/bomb design; NO LONGER the bundled Gorilla art (replaced 2026-05-28 by gorilla_friendly_canonical for a kid-safe boss that throws a poison banana)."
+    },
+    {
+      "asset_id": "f6acc93b-89b3-49b4-8aa5-c36837bd2f48",
+      "sha12": "9ce3778e4a97",
+      "label": "gorilla_friendly_canonical",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Gorilla.imageset/gorilla_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
+      "prompt": "Friendly, kid-safe cartoon space gorilla boss, front view, same dark gray fur + metallic harness style as the anchor, warm rounded eyes (no red), goofy grin, one fist cradling a giant glowing blue toxic banana, other hand open, no bomb, transparent background.",
+      "size": [256, 256],
+      "rendered_size": [1024, 1024],
+      "notes": "ACTIVE bundled gorilla art. Kid-safe redesign of the boss. Style-locked to gorilla_canonical. In-game it currently renders STATIC (idle/windup animations are deferred — see gorilla_idle_anim / gorilla_windup_throw_anim) because the SpriteCook animation service was down on 2026-05-28."
     },
     {
       "asset_id": "097e8b09-7c32-4d79-ad2e-8e1d116a3eec",
@@ -184,25 +198,52 @@
       "asset_id": "6d7fa75a-42c0-49a6-9090-6c12d0e34972",
       "label": "gorilla_windup_pose",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindup.imageset/gorilla_windup_sc.png",
+      "asset_path": null,
       "output_format": "still",
       "model": "gemini-3.1-flash-image-preview",
       "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
       "size": [256, 256],
-      "notes": "Source still for the gorilla_windup_throw animation."
+      "notes": "OLD angry/bomb windup pose. Superseded 2026-05-28 by gorilla_friendly_windup_pose; bundled art replaced."
+    },
+    {
+      "asset_id": "86f0d43f-40ee-4e9f-ad7b-640fc90ca1a3",
+      "sha12": "48b16669ea08",
+      "label": "gorilla_friendly_windup_pose",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindup.imageset/gorilla_windup_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "f6acc93b-89b3-49b4-8aa5-c36837bd2f48",
+      "prompt": "Friendly gorilla in a dynamic wind-up throw pose, banana arm cocked behind shoulder gripping the giant glowing blue toxic banana, coiled to fling, warm eyes + grin, transparent background.",
+      "size": [256, 256],
+      "rendered_size": [1014, 1014],
+      "notes": "Source still for the (DEFERRED) friendly gorilla_windup_throw animation regeneration. Not used directly in-game; GorillaWindup.imageset is only an animation source."
     },
     {
       "asset_id": "c7c45cb4-b4c3-410b-a954-6a1ae2bfab2c",
       "label": "gorilla_windup_throw_anim",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindupAnim.spriteatlas/",
+      "asset_path": "sprite-pipeline/_deferred_anims/GorillaWindupAnim.spriteatlas/",
       "output_format": "webp",
       "animated_from": "6d7fa75a-42c0-49a6-9090-6c12d0e34972",
       "frames": 8,
       "frame_size": [640, 640],
       "fps": 8,
       "loops": true,
-      "notes": "Animated WebP decoded into 8 PNG frames via webpmux + dwebp. Load in SpriteKit with SKTextureAtlas(named: \"GorillaWindupAnim\") then SKAction.animate(with:textures, timePerFrame: 0.125)."
+      "notes": "OLD angry/bomb windup-throw frames. SUPERSEDED 2026-05-28 by gorilla_friendly_windup_throw_anim (b428bd74). Kept in sprite-pipeline/_deferred_anims/ for reference only."
+    },
+    {
+      "asset_id": "b428bd74-5f8c-43f3-b0b0-9fe450c7a29e",
+      "label": "gorilla_friendly_windup_throw_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindupAnim.spriteatlas/",
+      "output_format": "spritesheet",
+      "animated_from": "f6acc93b-89b3-49b4-8aa5-c36837bd2f48",
+      "frames": 7,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": false,
+      "notes": "ACTIVE friendly windup-throw (generated on the SpriteCook website 2026-05-28 from the standing gorilla). 5120x640 PNG spritesheet sliced via sips; frame 1 dropped (two-gorilla glitch) -> 7 frames packed as imagesets 01-07. Sequence: 01 banana held -> 03-04 cock back -> 04 RELEASE (banana streaks off) -> 05-07 follow-through to empty hands. EnemySystem.playGorillaWindup fires the projectile at releaseIdx=3 to match. Since it ends with empty hands and idle is also animated, it blends back to the idle loop."
     },
     {
       "asset_id": "33fa965d-c58e-4511-9b1a-6e9acc39a50b",
@@ -287,13 +328,27 @@
       "asset_id": "2573cccd-37ef-4f93-b394-c39a9f58c85d",
       "label": "bomb_hd",
       "role": "projectile",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/Bomb.imageset/bomb_sc.png",
+      "asset_path": null,
       "output_format": "still",
       "model": "gemini-3.1-flash-image-preview",
       "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
       "prompt": "Cartoon round black space bomb projectile, side view, classic spherical bomb with short lit fuse on top, bright orange spark at fuse tip, subtle metallic sheen, slight silver highlight, small white glint, cartoon stylized HD, transparent background",
       "size": [128, 128],
-      "notes": "Used by ProjectileSystem.fireBomb when gorilla throws."
+      "notes": "OLD bomb art. Superseded 2026-05-28 by poison_banana_projectile; bundled art replaced."
+    },
+    {
+      "asset_id": "1899a559-f8a5-4bbb-b980-d5db261cc3c8",
+      "sha12": "7c066de94b18",
+      "label": "poison_banana_projectile",
+      "role": "projectile",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/Bomb.imageset/bomb_sc.png",
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "reference_of": "abf17226-90e0-43ce-a5d4-3d4e6198e320",
+      "prompt": "A giant poisonous cartoon banana projectile, side view with a natural curve, glossy toxic blue / blue-teal skin, sickly cyan sheen, faint radioactive blue-green glow, dripping toxic droplets, small dark stem, transparent background.",
+      "size": [128, 128],
+      "rendered_size": [1022, 1022],
+      "notes": "ACTIVE projectile the gorilla flings. Still keyed to Sprite.bomb / ProjectileSystem.fireBomb (internal naming kept). Code adds continuous spin (Tuning.Projectile.bombSpinPeriod) + a giant contact radius (bombRadius 26); impact shows a soft toxic-green glow puff (no fireball)."
     },
     {
       "asset_id": "4e55ffe3-206c-4966-8c46-3c2e8545260e",
@@ -602,14 +657,14 @@
       "asset_id": "affdee57-54fa-493f-bde7-c8a139277768",
       "label": "gorilla_idle_anim",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaIdleAnim.spriteatlas/",
+      "asset_path": "sprite-pipeline/_deferred_anims/GorillaIdleAnim.spriteatlas/",
       "output_format": "webp",
       "animated_from": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
       "frames": 8,
       "frame_size": [640, 640],
       "fps": 8,
       "loops": true,
-      "notes": "Sliced from 5120×640 spritesheet PNG via sips. EnemySystem.makeEnemyVisual starts this loop on gorilla spawn with SKAction.repeatForever; PlayGorillaWindup interrupts and restores it."
+      "notes": "DEFERRED + MOVED OUT OF xcassets 2026-05-28. These are the OLD angry/bomb gorilla idle frames — must NOT be re-bundled as-is. Moved aside so makeEnemyVisual falls back to the static friendly Gorilla.imageset. TODO: regenerate from gorilla_friendly_canonical (f6acc93b) via animate_game_art once the SpriteCook animation service recovers (it returned network_error on 2026-05-28), slice, drop frame 1, and drop the new atlas back into GalaxyMonkey/Assets.xcassets/GorillaIdleAnim.spriteatlas/."
     },
     {
       "asset_id": "26e861ae-90e6-40a5-aebb-a52f907ba147",
