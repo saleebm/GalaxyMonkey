@@ -32,14 +32,23 @@ final class PlanetField {
         /// `a_sun_angle` attribute for the terminator shader. Moons,
         /// asteroids, and the sun leave this nil.
         weak var bodySprite: SKSpriteNode?
+        /// When both are set, the orbit toggles its node's zPosition between
+        /// these values as it crosses the ecliptic (far side = `backZ`), so an
+        /// inner planet whose orbit overlaps the sun's disk is occluded on the
+        /// far side instead of always drawing in front of the sun.
+        let frontZ: CGFloat?
+        let backZ: CGFloat?
 
         init(node: SKNode, radius: CGFloat, phase: CGFloat, angularSpeed: CGFloat,
-             bodySprite: SKSpriteNode? = nil) {
+             bodySprite: SKSpriteNode? = nil,
+             frontZ: CGFloat? = nil, backZ: CGFloat? = nil) {
             self.node = node
             self.radius = radius
             self.phase = phase
             self.angularSpeed = angularSpeed
             self.bodySprite = bodySprite
+            self.frontZ = frontZ
+            self.backZ = backZ
         }
     }
 
@@ -89,9 +98,12 @@ final class PlanetField {
         installOrbitRing(radius: Tuning.World.orbitSaturn)
         installOrbitRing(radius: Tuning.World.orbitUranus)
         installOrbitRing(radius: Tuning.World.orbitNeptune)
+        // Mercury's orbit (radius 600 × 0.45 tilt → far-side y ≈ 270) falls
+        // inside the sun's 300pt disk radius, so on the far side it must drop
+        // behind the sun/corona (-46/-46.5) while staying above the rings (-47).
         _ = installPlanet(sprite: .mercury, diameter: Tuning.World.mercuryDiameter,
                           radius: Tuning.World.orbitMercury, angularSpeed: Tuning.World.angSpeedMercury,
-                          zPosition: -45)
+                          zPosition: -45, behindSunZ: -46.7)
         _ = installPlanet(sprite: .venus, diameter: Tuning.World.venusDiameter,
                           radius: Tuning.World.orbitVenus, angularSpeed: Tuning.World.angSpeedVenus,
                           zPosition: -44)
@@ -147,6 +159,13 @@ final class PlanetField {
             let x = cos(orbit.phase) * orbit.radius
             let y = sin(orbit.phase) * orbit.radius * Tuning.World.orbitTiltY
             orbit.node.position = CGPoint(x: x, y: y)
+            // Far side of the orbit (y >= 0, top of the tilted ellipse) sits
+            // behind the sun; near side draws in front. The flip happens at the
+            // ellipse's horizontal extremes where the body is clear of the
+            // sun's disk, so there's no visible pop.
+            if let frontZ = orbit.frontZ, let backZ = orbit.backZ {
+                orbit.node.zPosition = y >= 0 ? backZ : frontZ
+            }
             if let body = orbit.bodySprite {
                 // Sun direction from planet to sun in world coords =
                 // phase + π (the sun sits at world origin, the planet at
@@ -230,14 +249,15 @@ final class PlanetField {
     @discardableResult
     private func installPlanet(sprite: Sprite, diameter: CGFloat,
                                radius: CGFloat, angularSpeed: CGFloat,
-                               zPosition: CGFloat) -> SKNode {
+                               zPosition: CGFloat, behindSunZ: CGFloat? = nil) -> SKNode {
         let pivot = SKNode()
         pivot.zPosition = zPosition
         root.addChild(pivot)
         // phase = 0 → planet starts on the +X axis from the Sun. With every
         // planet doing the same, the game opens on a planetary conjunction
         // that then drifts apart naturally as inner planets pull ahead.
-        orbits.append(Orbit(node: pivot, radius: radius, phase: 0, angularSpeed: angularSpeed))
+        orbits.append(Orbit(node: pivot, radius: radius, phase: 0, angularSpeed: angularSpeed,
+                            frontZ: behindSunZ == nil ? nil : zPosition, backZ: behindSunZ))
 
         guard let tex = SpriteCatalog.texture(for: sprite) else { return pivot }
         let body = SKSpriteNode(texture: tex)
