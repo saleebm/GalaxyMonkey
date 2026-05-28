@@ -82,14 +82,15 @@ final class VFXPool {
         s.run(seq, withKey: "damageFlash")
     }
 
-    func spawnGlow(at position: CGPoint, scale: CGFloat, duration: TimeInterval) {
+    func spawnGlow(at position: CGPoint, scale: CGFloat, duration: TimeInterval,
+                   color: UIColor = UIColor(red: 1.0, green: 0.85, blue: 0.4, alpha: 1)) {
         guard let scene else { return }
         let s = SKSpriteNode(texture: Self.haloTexture)
         let maxDim = max(s.size.width, s.size.height)
         if maxDim > 0 {
             s.setScale(Tuning.Enemy.radius * 2 * scale / maxDim)
         }
-        s.color = UIColor(red: 1.0, green: 0.85, blue: 0.4, alpha: 1)
+        s.color = color
         s.colorBlendFactor = 0.8
         s.blendMode = .add
         s.position = position

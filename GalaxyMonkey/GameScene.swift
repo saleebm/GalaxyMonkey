@@ -726,32 +726,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         UserDefaults.standard.integer(forKey: "best_score")
     }
 
-    /// 25-frame bomb detonation — larger, chunkier, slower per-frame than the
-    /// enemy-kill explosion. Used for gorilla bombs (hit or timeout).
-    private func spawnBombExplosion(at position: CGPoint) {
-        guard let action = AnimationCatalog.oneShot(.bombExplosion,
-                                                     frameDuration: Tuning.VFX.bombExplosionFrameDuration) else { return }
-        let frames = AnimationCatalog.textures(for: .bombExplosion)
-        guard let first = frames.first else { return }
-        let node = SKSpriteNode(texture: first)
-        let target: CGFloat = Tuning.Enemy.radius * Tuning.VFX.bombExplosionScale
-        let maxDim = max(first.size().width, first.size().height)
-        if maxDim > 0 { node.setScale(target / maxDim) }
-        node.position = position
-        node.zPosition = 50
-        addChild(node)
-        node.run(action)
-    }
-
-    /// All the per-event compositing for a bomb going off: animated sprite,
-    /// audio, big screen shake, large glow halo.
+    /// The poison banana landing: a soft toxic-green glow puff plus a light
+    /// thud. No fireball — the banana isn't explosive, just gross.
     private func detonateBomb(at position: CGPoint) {
-        spawnBombExplosion(at: position)
         audio.play(.explosion, at: position)
         applyShake(Tuning.VFX.bombShakeIntensity)
         vfx.spawnGlow(at: position,
                       scale: Tuning.VFX.glowBombScale,
-                      duration: Tuning.VFX.glowBombDuration)
+                      duration: Tuning.VFX.glowBombDuration,
+                      color: UIColor(red: 0.45, green: 0.95, blue: 0.4, alpha: 1))
     }
 
     #if DEBUG

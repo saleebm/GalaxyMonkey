@@ -80,10 +80,11 @@ final class ProjectileSystem {
         configureFiredBullet(b, position: position, angle: angle,
                              category: Category.enemyBullet, target: Category.player,
                              sprite: .bomb,
-                             fallbackColor: UIColor(red: 0.18, green: 0.18, blue: 0.22, alpha: 1),
+                             fallbackColor: UIColor(red: 0.25, green: 0.65, blue: 0.55, alpha: 1),
                              speed: Tuning.Projectile.bombSpeed,
                              radius: Tuning.Projectile.bombRadius,
-                             lifetime: Tuning.Projectile.bombLifetime)
+                             lifetime: Tuning.Projectile.bombLifetime,
+                             spinPeriod: Tuning.Projectile.bombSpinPeriod)
         scene?.addChild(b.node)
         activeBullets.append(b)
     }
@@ -114,7 +115,8 @@ final class ProjectileSystem {
                                       position: CGPoint, angle: CGFloat,
                                       category: UInt32, target: UInt32,
                                       sprite: Sprite, fallbackColor: UIColor,
-                                      speed: CGFloat, radius: CGFloat, lifetime: TimeInterval) {
+                                      speed: CGFloat, radius: CGFloat, lifetime: TimeInterval,
+                                      spinPeriod: TimeInterval? = nil) {
         b.node.removeAllChildren()
         b.node.position = position
         b.node.zRotation = angle
@@ -123,16 +125,25 @@ final class ProjectileSystem {
         b.node.physicsBody?.categoryBitMask = category
         b.node.physicsBody?.contactTestBitMask = target
 
+        // When set, the visual child spins continuously (the gorilla's flung
+        // banana). The physics body has allowsRotation = false and velocity is
+        // integrated manually, so spinning the visual never affects motion.
+        let spin: SKAction? = spinPeriod.map {
+            SKAction.repeatForever(SKAction.rotate(byAngle: .pi * 2, duration: $0))
+        }
+
         if let tex = SpriteCatalog.texture(for: sprite) {
             let s = SKSpriteNode(texture: tex)
             let maxDim = max(tex.size().width, tex.size().height)
             if maxDim > 0 { s.setScale(radius * 2.4 / maxDim) }
+            if let spin { s.run(spin) }
             b.node.addChild(s)
         } else {
             let shape = SKShapeNode(circleOfRadius: radius)
             shape.fillColor = fallbackColor
             shape.strokeColor = fallbackColor.withAlphaComponent(0.85)
             shape.lineWidth = 1
+            if let spin { shape.run(spin) }
             b.node.addChild(shape)
         }
 

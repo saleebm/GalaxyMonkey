@@ -41,10 +41,13 @@ enum Tuning {
         // Per-side angular offset for the golden-banana spread shot.
         // Level 1 fires at ±offset; level 2 fires at 0 and ±2·offset.
         static let spreadOffset: CGFloat = .pi / 24   // 7.5°
-        // Gorilla bomb — slow, heavy, larger contact radius.
+        // Gorilla "poison banana" projectile — slow, telegraphed, giant, and
+        // spinning. Internally still called "bomb" (same fire path / Sprite.bomb).
         static let bombSpeed: CGFloat = 280
         static let bombLifetime: TimeInterval = 3.0
-        static let bombRadius: CGFloat = 16
+        static let bombRadius: CGFloat = 26
+        // Seconds per full spin of the banana while it flies.
+        static let bombSpinPeriod: TimeInterval = 0.6
         // Enemy bullets — slowed and visually enlarged so the player can
         // read incoming shots. Physics radius stays the pool default; only
         // the rendered sprite scales up.
@@ -139,7 +142,8 @@ enum Tuning {
         // Screen shake — per-frame decay, max offset, and per-event intensities.
         static let shakeDecay: CGFloat = 0.86
         static let shakeMaxOffset: CGFloat = 18
-        static let bombShakeIntensity: CGFloat = 14
+        // Soft thud for the poison-banana splash (was 14 for the old bomb blast).
+        static let bombShakeIntensity: CGFloat = 6
         static let playerHitShakeIntensity: CGFloat = 8
         static let enemyKillShakeIntensity: CGFloat = 3
 
