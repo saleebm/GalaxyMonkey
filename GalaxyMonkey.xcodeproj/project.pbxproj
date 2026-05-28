@@ -22,6 +22,7 @@
 		59F889079167DE478A7929E0 /* game_over.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9B0A4474AA7D174CC02C290A /* game_over.caf */; };
 		5F8480D49C35F42861846CB4 /* Tuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3904675D779ADF1B94AAFED2 /* Tuning.swift */; };
 		6243188F7F16A4B949868FD4 /* ThrusterEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E707C072CB8DA34BF1E140 /* ThrusterEmitter.swift */; };
+		6457F5EC0F6C80E2A8F316CA /* warp.caf in Resources */ = {isa = PBXBuildFile; fileRef = 75A9DD4CC9B3674F5D452675 /* warp.caf */; };
 		6628A836BB5AC1B6E19E32CE /* GalaxyMonkeyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC80ED28CC58A5EA76EE1EAE /* GalaxyMonkeyApp.swift */; };
 		6A245296657074964B81146D /* EnemySystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A393FA1855864FDE483BCA0E /* EnemySystem.swift */; };
 		6D5B85E04D8D33D1006B60AD /* PickupSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9EA68E944DF5300452B7FB /* PickupSystem.swift */; };
@@ -69,6 +70,7 @@
 		5FA0A66DE491A42923CFAC32 /* AudioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioController.swift; sourceTree = "<group>"; };
 		66DB7CAF49F7DEA9D5FD8980 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
 		6D66BEA9382D547C5A2005DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		75A9DD4CC9B3674F5D452675 /* warp.caf */ = {isa = PBXFileReference; path = warp.caf; sourceTree = "<group>"; };
 		77CF3C9DDDC49390EA3B77D7 /* GameControllerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerInput.swift; sourceTree = "<group>"; };
 		8C8966079BA34B85E3103F59 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
 		919224E33146FBC0332418B7 /* PlanetField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetField.swift; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 				AA4DDED65343BD47F14F16F3 /* player_hit.caf */,
 				F7BB4CBFC51EFDB552A09A67 /* shot.caf */,
 				115F96E1FDF2F557D8DD0B49 /* ui_tap.caf */,
+				75A9DD4CC9B3674F5D452675 /* warp.caf */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 				7071011ED9F906DB3A5F566F /* player_hit.caf in Resources */,
 				950C00EB38E9BA7866892837 /* shot.caf in Resources */,
 				A07362542A9B2432C7B7EE19 /* ui_tap.caf in Resources */,
+				6457F5EC0F6C80E2A8F316CA /* warp.caf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

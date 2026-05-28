@@ -797,6 +797,17 @@
       "size": [256, 256],
       "reference_asset_id": "abbba321-ea4a-4e8f-9760-00d74c9645d1",
       "notes": "Asteroid-belt rock variant 4 (charcoal grey with reddish iron oxide patches)."
+    },
+    {
+      "asset_id": "4a1ab679-c637-4a83-aa5d-0a9cbff61546",
+      "sha12": "d900bbfbdad4",
+      "label": "blackhole_vortex_canonical",
+      "role": "fx",
+      "asset_path": null,
+      "output_format": "still",
+      "model": "gemini-3.1-flash-image-preview",
+      "size": [818, 818],
+      "notes": "Violet swirling black-hole vortex generated for the enemy death warp. NOT wired in: the warp was dialed back to a subtle soft procedural violet halo (VFXPool.makeBlackhole/haloTexture) per design choice, so the bright vortex still was removed from Assets.xcassets. asset_id kept for potential reuse. (animate_game_art was timing out — integration error reported 2026-05-27.)"
     }
   ]
 }

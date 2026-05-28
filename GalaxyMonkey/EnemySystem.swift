@@ -16,7 +16,10 @@ final class EnemySystem {
 
     enum HitOutcome {
         case stillAlive
-        case killed(score: Int, position: CGPoint, type: EnemyType)
+        // `node` is detached from the simulation but still in the scene, so the
+        // caller can run a death animation (the blackhole warp) and remove it
+        // when the FX finishes.
+        case killed(score: Int, position: CGPoint, type: EnemyType, node: SKNode)
     }
 
     private weak var scene: SKScene?
@@ -239,31 +242,36 @@ final class EnemySystem {
         let e = enemies[idx]
         e.hp -= 1
         if e.hp > 0 { return .stillAlive }
-        let killedPos = e.node.position
-        let type = e.type
-        enemies.remove(at: idx)
-        e.node.removeFromParent()
-        if type == .gorilla {
-            bossAlive = false
-        } else {
-            regularKillsSinceBoss += 1
-        }
-        return .killed(score: type.scoreOnKill, position: killedPos, type: type)
+        let dead = detachForDeath(at: idx)
+        return .killed(score: dead.type.scoreOnKill,
+                       position: dead.node.position,
+                       type: dead.type,
+                       node: dead.node)
     }
 
-    /// Cleanup-only kill (e.g., on player-enemy collision the enemy is consumed
-    /// regardless of HP). Returns true if the enemy was found.
+    /// Cleanup kill (e.g., on player-enemy collision the enemy is consumed
+    /// regardless of HP). Returns the detached node so the caller can run the
+    /// death animation, or nil if the node wasn't an active enemy.
     @discardableResult
-    func killByNode(_ node: SKNode) -> Bool {
-        guard let idx = enemies.firstIndex(where: { $0.node === node }) else { return false }
+    func killByNode(_ node: SKNode) -> SKNode? {
+        guard let idx = enemies.firstIndex(where: { $0.node === node }) else { return nil }
+        return detachForDeath(at: idx).node
+    }
+
+    /// Detaches a dying enemy from active simulation but leaves its node in the
+    /// scene: physics off (no further contacts mid-animation), frame loop
+    /// frozen, boss/kill counters updated. The caller owns removing the node
+    /// once its death FX completes. Reset/off-screen cleanup removes directly.
+    private func detachForDeath(at idx: Int) -> Enemy {
         let e = enemies.remove(at: idx)
-        e.node.removeFromParent()
+        e.node.physicsBody = nil
+        e.visual.removeAction(forKey: "loop")
         if e.type == .gorilla {
             bossAlive = false
         } else {
             regularKillsSinceBoss += 1
         }
-        return true
+        return e
     }
 
     func contains(node: SKNode) -> Bool {

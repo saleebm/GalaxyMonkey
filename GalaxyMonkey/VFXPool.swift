@@ -100,4 +100,67 @@ final class VFXPool {
             SKAction.removeFromParent(),
         ]))
     }
+
+    // MARK: - Blackhole warp (enemy death)
+
+    /// Kid-friendly enemy death: the sprite flushes violet, then gently shrinks
+    /// and fades into a soft violet halo that glows in and out. Deliberately
+    /// subtle — no spiral, no big spin. The caller hands off a detached enemy
+    /// node (physics off, frame loop frozen); this routine owns removing it.
+    func spawnBlackholeWarp(enemyNode: SKNode, at position: CGPoint) {
+        guard let scene else { enemyNode.removeFromParent(); return }
+
+        // Soft violet halo behind the enemy: glows in, then fades out.
+        let hole = makeBlackhole(at: position)
+        hole.alpha = 0
+        scene.addChild(hole)
+        hole.run(SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.7, duration: Tuning.VFX.blackholeOpenDuration),
+            SKAction.wait(forDuration: Tuning.VFX.warpFadeDuration * 0.4),
+            SKAction.fadeOut(withDuration: Tuning.VFX.blackholeCollapseDuration),
+            SKAction.removeFromParent(),
+        ]))
+
+        // Gentle shrink + fade, carried by the container so the whole node
+        // (sprite + children) leaves together.
+        let dissolve = SKAction.group([
+            SKAction.scale(to: 0.05, duration: Tuning.VFX.warpFadeDuration),
+            SKAction.fadeAlpha(to: 0, duration: Tuning.VFX.warpFadeDuration),
+        ])
+        dissolve.timingMode = .easeInEaseOut
+
+        // colorize only applies to SKSpriteNode; the placeholder triangle
+        // (art missing) just dissolves without the tint.
+        let sprite: SKSpriteNode? = enemyNode as? SKSpriteNode
+            ?? enemyNode.children.compactMap { $0 as? SKSpriteNode }.first
+        if let s = sprite {
+            s.run(SKAction.colorize(with: UIColor(red: 0.62, green: 0.20, blue: 0.95, alpha: 1),
+                                    colorBlendFactor: 0.7,
+                                    duration: Tuning.VFX.warpVioletDuration))
+        }
+
+        let delay = sprite == nil ? 0 : Tuning.VFX.warpVioletDuration
+        enemyNode.run(SKAction.sequence([
+            SKAction.wait(forDuration: delay),
+            dissolve,
+            SKAction.removeFromParent(),
+        ]))
+    }
+
+    private func makeBlackhole(at position: CGPoint) -> SKSpriteNode {
+        // Soft white→transparent halo, tinted violet under additive blend.
+        let node = SKSpriteNode(texture: Self.haloTexture)
+        node.color = UIColor(red: 0.55, green: 0.20, blue: 0.85, alpha: 1)
+        node.colorBlendFactor = 0.9
+        node.blendMode = .add
+        node.run(SKAction.repeatForever(
+            SKAction.rotate(byAngle: -.pi * 2, duration: Tuning.VFX.blackholeSpinPeriod)))
+        let maxDim = max(node.size.width, node.size.height)
+        if maxDim > 0 {
+            node.setScale(Tuning.Enemy.radius * 2 * Tuning.VFX.blackholeScale / maxDim)
+        }
+        node.position = position
+        node.zPosition = 44
+        return node
+    }
 }

@@ -14,6 +14,7 @@ enum Sfx: String {
     case playerShot   = "shot.caf"
     case enemyShot    = "enemy_shot.caf"
     case explosion    = "explosion.caf"
+    case warp         = "warp.caf"
     case pickup       = "pickup.caf"
     case playerHit    = "player_hit.caf"
     case waveStart    = "wave_start.caf"

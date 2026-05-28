@@ -163,11 +163,21 @@ enum Tuning {
         // Visual size = Enemy.radius × this.
         static let bombExplosionScale: CGFloat = 3.4
 
-        // Glow halo composited under explosions.
-        static let glowEnemyKillDuration: TimeInterval = 0.18
+        // Glow halo composited under the bomb detonation.
         static let glowBombDuration: TimeInterval = 0.35
-        static let glowEnemyKillScale: CGFloat = 1.0
         static let glowBombScale: CGFloat = 2.0
+
+        // Blackhole warp — the kid-friendly enemy death. The sprite flushes
+        // violet, then gently shrinks and fades into a soft violet halo that
+        // glows in and out. Deliberately subtle: no spiral, no big spin.
+        static let warpVioletDuration: TimeInterval = 0.12
+        static let warpFadeDuration: TimeInterval = 0.3
+        static let blackholeOpenDuration: TimeInterval = 0.15
+        static let blackholeCollapseDuration: TimeInterval = 0.2
+        // Halo display size = Enemy.radius × this.
+        static let blackholeScale: CGFloat = 3.0
+        // Seconds per full rotation of the soft halo.
+        static let blackholeSpinPeriod: TimeInterval = 1.0
 
         // Slow self-rotation period in seconds (per planet, on its own axis).
         static let planetRotationPeriodMin: TimeInterval = 60

@@ -620,15 +620,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                     // No score, no explosion — just absorb the hit. A future
                     // pass could flash the sprite white here.
                     break
-                case .killed(let s, let pos, _):
+                case .killed(let s, let pos, _, let deadNode):
                     score += s
-                    audio.play(.explosion, at: pos)
-                    spawnExplosion(at: pos)
+                    audio.play(.warp, at: pos)
+                    vfx.spawnBlackholeWarp(enemyNode: deadNode, at: pos)
                     applyShake(Tuning.VFX.enemyKillShakeIntensity)
-                    vfx.spawnGlow(at: pos,
-                                  scale: Tuning.VFX.glowEnemyKillScale,
-                                  duration: Tuning.VFX.glowEnemyKillDuration)
-                    haptics.impact(.medium)
+                    haptics.impact(.light)
                     pickups.trySpawnGoldenBanana(at: pos)
                 }
             }
@@ -638,7 +635,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if mask == (Category.player | Category.enemy) {
             let enemyNode: SKNode? = a.categoryBitMask == Category.enemy ? a.node : b.node
             if player.tryTakeHit() {
-                if let en = enemyNode { _ = enemies.killByNode(en) }
+                if let en = enemyNode, let dead = enemies.killByNode(en) {
+                    vfx.spawnBlackholeWarp(enemyNode: dead, at: dead.position)
+                }
                 audio.play(.playerHit, at: player.node.position)
                 applyShake(Tuning.VFX.playerHitShakeIntensity)
                 vfx.spawnDamageFlash(target: player.visual)
@@ -725,24 +724,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private func bestScore() -> Int {
         UserDefaults.standard.integer(forKey: "best_score")
-    }
-
-    /// Drops a one-shot explosion sprite at the given world position. Reuses
-    /// the BombExplosionAnim frames at a smaller scale — the original
-    /// ExplosionAnim art was hard-edged and read as an opaque box at kill scale.
-    private func spawnExplosion(at position: CGPoint) {
-        guard let action = AnimationCatalog.oneShot(.bombExplosion,
-                                                     frameDuration: Tuning.VFX.bombExplosionFrameDuration) else { return }
-        let frames = AnimationCatalog.textures(for: .bombExplosion)
-        guard let first = frames.first else { return }
-        let node = SKSpriteNode(texture: first)
-        let target: CGFloat = Tuning.Enemy.radius * 2.4
-        let maxDim = max(first.size().width, first.size().height)
-        if maxDim > 0 { node.setScale(target / maxDim) }
-        node.position = position
-        node.zPosition = 50
-        addChild(node)
-        node.run(action)
     }
 
     /// 25-frame bomb detonation — larger, chunkier, slower per-frame than the
