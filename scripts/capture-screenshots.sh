@@ -6,11 +6,11 @@
 # and the script saves a PNG to build/screenshots/<device-name>/<timestamp>.png.
 # Repeat for additional captures on the same device, or type 'n' to move on.
 #
-# Required sizes for landscape iOS games (as of 2026-05):
-#   - 6.9" iPhone   (iPhone 16 Pro Max)        — 1320 x 2868 portrait / 2868 x 1320 landscape
-#   - 6.5" iPhone   (iPhone 11 Pro Max / 15+)  — 1242 x 2688 / 2688 x 1242   (legacy slot)
-#   - 13"  iPad     (iPad Pro 13-inch M4)      — 2064 x 2752 / 2752 x 2064
-#   - 12.9" iPad    (iPad Pro 12.9" 6th gen)   — 2048 x 2732 / 2732 x 2048   (legacy slot)
+# Required sizes for a universal landscape iOS game (as of 2026-05). Apple now
+# accepts a single 6.9" iPhone slot and a single 13" iPad slot — the 6.5"/12.9"
+# legacy slots are auto-filled from these and no longer need separate capture.
+#   - 6.9" iPhone   (iPhone 17 Pro Max)        — 1320 x 2868 portrait / 2868 x 1320 landscape
+#   - 13"  iPad     (iPad Pro 13-inch M5)      — 2064 x 2752 / 2752 x 2064
 
 set -euo pipefail
 
@@ -19,10 +19,8 @@ OUT_DIR="$PROJECT_DIR/build/screenshots"
 mkdir -p "$OUT_DIR"
 
 DEVICES=(
-  "iPhone 16 Pro Max"
-  "iPhone 15 Plus"
-  "iPad Pro 13-inch (M4)"
-  "iPad Pro (12.9-inch) (6th generation)"
+  "iPhone 17 Pro Max"
+  "iPad Pro 13-inch (M5)"
 )
 
 resolve_udid() {
