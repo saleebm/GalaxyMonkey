@@ -13,10 +13,13 @@
 import SpriteKit
 
 enum AnimationSet: String, CaseIterable {
-    case gorillaIdle   = "GorillaIdleAnim"
-    case gorillaWindup = "GorillaWindupAnim"
+    case gorillaLeftIdle    = "GorillaLeftIdleAnim"
+    case gorillaRightIdle   = "GorillaRightIdleAnim"
+    case gorillaLeftWindup  = "GorillaLeftWindupAnim"
+    case gorillaRightWindup = "GorillaRightWindupAnim"
     case bombExplosion = "BombExplosionAnim"
-    case droneSwarmIdle           = "DroneSwarmIdleAnim"
+    case droneSwarmLeftIdle       = "DroneSwarmLeftIdleAnim"
+    case droneSwarmRightIdle      = "DroneSwarmRightIdleAnim"
     case plasmaJellyIdle          = "PlasmaJellyIdleAnim"
     case preppyLeftIdle           = "PreppyLeftIdleAnim"
     case preppyRightIdle          = "PreppyRightIdleAnim"

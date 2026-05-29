@@ -23,7 +23,7 @@ enum EnemyType: CaseIterable {
 
     var leftSprite: Sprite {
         switch self {
-        case .droneSwarm:     return .droneSwarm
+        case .droneSwarm:     return .droneSwarmLeft
         case .preppy:         return .preppyLeft
         case .white:          return .whiteLeft
         case .shady:          return .shadyLeft
@@ -31,13 +31,13 @@ enum EnemyType: CaseIterable {
         case .plasmaJelly:    return .plasmaJelly
         case .astroSniper:    return .astroSniperLeft
         case .miniBoss:       return .miniBossLeft
-        case .gorilla:        return .gorilla
+        case .gorilla:        return .gorillaLeft
         }
     }
 
     var rightSprite: Sprite {
         switch self {
-        case .droneSwarm:     return .droneSwarm
+        case .droneSwarm:     return .droneSwarmRight
         case .preppy:         return .preppyRight
         case .white:          return .whiteRight
         case .shady:          return .shadyRight
@@ -45,7 +45,7 @@ enum EnemyType: CaseIterable {
         case .plasmaJelly:    return .plasmaJelly
         case .astroSniper:    return .astroSniperRight
         case .miniBoss:       return .miniBossRight
-        case .gorilla:        return .gorilla
+        case .gorilla:        return .gorillaRight
         }
     }
 

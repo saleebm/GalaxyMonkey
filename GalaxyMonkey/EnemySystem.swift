@@ -154,7 +154,10 @@ final class EnemySystem {
             fireAtRelease()
             return
         }
-        let frames = AnimationCatalog.textures(for: .gorillaWindup)
+        // Capture facing now: the follow-through closure holds `e` weakly, so
+        // it can't read e.facingLeft after the throw plays out.
+        let facingLeft = e.facingLeft
+        let frames = AnimationCatalog.textures(for: facingLeft ? .gorillaLeftWindup : .gorillaRightWindup)
         guard !frames.isEmpty else {
             fireAtRelease()
             return
@@ -179,7 +182,7 @@ final class EnemySystem {
         }
         actions.append(SKAction.run { [weak visual, weak e] in
             guard let visual else { return }
-            if let loop = AnimationCatalog.loop(.gorillaIdle, frameDuration: 0.125) {
+            if let loop = AnimationCatalog.loop(facingLeft ? .gorillaLeftIdle : .gorillaRightIdle, frameDuration: 0.125) {
                 visual.run(loop, withKey: "loop")
             }
             // Gorilla never enters the walk state (no walk atlas), so reset
@@ -340,8 +343,8 @@ final class EnemySystem {
 
     private func idleAnimation(for type: EnemyType, facingLeft: Bool) -> AnimationSet? {
         switch type {
-        case .gorilla:        return .gorillaIdle
-        case .droneSwarm:     return .droneSwarmIdle
+        case .gorilla:        return facingLeft ? .gorillaLeftIdle    : .gorillaRightIdle
+        case .droneSwarm:     return facingLeft ? .droneSwarmLeftIdle : .droneSwarmRightIdle
         case .plasmaJelly:    return .plasmaJellyIdle
         case .preppy:         return facingLeft ? .preppyLeftIdle         : .preppyRightIdle
         case .white:          return facingLeft ? .whiteLeftIdle          : .whiteRightIdle

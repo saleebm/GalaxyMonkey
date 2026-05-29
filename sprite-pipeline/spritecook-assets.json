@@ -97,14 +97,14 @@
       "sha12": "9ce3778e4a97",
       "label": "gorilla_friendly_canonical",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/Gorilla.imageset/gorilla_sc.png",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaRight.imageset/gorilla_sc.png",
       "output_format": "still",
       "model": "gemini-3.1-flash-image-preview",
       "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
       "prompt": "Friendly, kid-safe cartoon space gorilla boss, front view, same dark gray fur + metallic harness style as the anchor, warm rounded eyes (no red), goofy grin, one fist cradling a giant glowing blue toxic banana, other hand open, no bomb, transparent background.",
       "size": [256, 256],
       "rendered_size": [1024, 1024],
-      "notes": "ACTIVE bundled gorilla art. Kid-safe redesign of the boss. Style-locked to gorilla_canonical. In-game it currently renders STATIC (idle/windup animations are deferred — see gorilla_idle_anim / gorilla_windup_throw_anim) because the SpriteCook animation service was down on 2026-05-28."
+      "notes": "ACTIVE bundled gorilla art (boss fallback still). Kid-safe redesign, style-locked to gorilla_canonical. Generated facing-RIGHT (banana/throwing arm on viewer-right). 2026-05-28: given an L/R pair — GorillaLeft.imageset is a sips-horizontal flip (gorilla_left_sc.png). In-game the boss renders via its animated atlases (gorilla_friendly_idle_anim + windup), not this still."
     },
     {
       "asset_id": "097e8b09-7c32-4d79-ad2e-8e1d116a3eec",
@@ -143,12 +143,12 @@
       "asset_id": "dfbd46ff-3161-4e44-ba19-d60447a85e21",
       "label": "drone_swarm_canonical",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/DroneSwarm.imageset/drone_swarm_sc.png",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/DroneSwarmLeft.imageset/drone_swarm_sc.png",
       "output_format": "still",
       "model": "gemini-3.1-flash-image-preview",
       "reference_of": "99d8f929-3ea3-448c-9e0e-4a851c7ba6c1",
       "size": [256, 256],
-      "notes": "Omnidirectional creature — single imageset, no L/R pair."
+      "notes": "Generated facing-LEFT (eye/gun toward viewer-left). 2026-05-28: given an L/R pair like the rest of the roster — DroneSwarmRight.imageset is a sips-horizontal flip of this asset (drone_swarm_right_sc.png)."
     },
     {
       "asset_id": "3733d9b0-9063-4b79-8e5c-230312049d8d",
@@ -236,14 +236,25 @@
       "asset_id": "b428bd74-5f8c-43f3-b0b0-9fe450c7a29e",
       "label": "gorilla_friendly_windup_throw_anim",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaWindupAnim.spriteatlas/",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaRightWindupAnim.spriteatlas/",
       "output_format": "spritesheet",
       "animated_from": "f6acc93b-89b3-49b4-8aa5-c36837bd2f48",
       "frames": 7,
       "frame_size": [640, 640],
       "fps": 8,
       "loops": false,
-      "notes": "ACTIVE friendly windup-throw (generated on the SpriteCook website 2026-05-28 from the standing gorilla). 5120x640 PNG spritesheet sliced via sips; frame 1 dropped (two-gorilla glitch) -> 7 frames packed as imagesets 01-07. Sequence: 01 banana held -> 03-04 cock back -> 04 RELEASE (banana streaks off) -> 05-07 follow-through to empty hands. EnemySystem.playGorillaWindup fires the projectile at releaseIdx=3 to match. Since it ends with empty hands and idle is also animated, it blends back to the idle loop."
+      "notes": "ACTIVE friendly windup-throw, facing RIGHT (generated on the SpriteCook website 2026-05-28 from the standing gorilla). 5120x640 PNG spritesheet sliced via sips; frame 1 dropped (two-gorilla glitch) -> 7 frames packed as imagesets 01-07. Sequence: 01 banana held -> 03-04 cock back -> 04 RELEASE (banana streaks off) -> 05-07 follow-through to empty hands. EnemySystem.playGorillaWindup fires the projectile at releaseIdx=3 to match (flip preserves frame order + release index; projectile angle is atan2-to-player, unaffected). Renamed 2026-05-28 from GorillaWindupAnim when the boss got an L/R pair."
+    },
+    {
+      "label": "gorilla_left_windup_throw_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaLeftWindupAnim.spriteatlas/",
+      "output_format": "spritesheet",
+      "frames": 7,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": false,
+      "notes": "sips -f horizontal of gorilla_friendly_windup_throw_anim per-frame (frames renamed gorilla_left_windup_0X). No SpriteCook asset_id."
     },
     {
       "asset_id": "33fa965d-c58e-4511-9b1a-6e9acc39a50b",
@@ -352,16 +363,27 @@
     },
     {
       "asset_id": "4e55ffe3-206c-4966-8c46-3c2e8545260e",
-      "label": "drone_swarm_idle_anim",
+      "label": "drone_swarm_left_idle_anim",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/DroneSwarmIdleAnim.spriteatlas/",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/DroneSwarmLeftIdleAnim.spriteatlas/",
       "output_format": "spritesheet",
       "animated_from": "dfbd46ff-3161-4e44-ba19-d60447a85e21",
       "frames": 7,
       "frame_size": [640, 640],
       "fps": 8,
       "loops": true,
-      "notes": "5120x640 PNG spritesheet sliced via sips. Frame 1 dropped per SpriteCook two-ship glitch; sheet frames 2-8 packed as atlas frames 01-07. EnemySystem.makeEnemyVisual auto-prefers this atlas via AnimationCatalog when present."
+      "notes": "5120x640 PNG spritesheet sliced via sips. Frame 1 dropped per SpriteCook two-ship glitch; sheet frames 2-8 packed as atlas frames 01-07. Facing LEFT. Renamed 2026-05-28 from DroneSwarmIdleAnim when the drone got an L/R pair. EnemySystem.idleAnimation now picks .droneSwarmLeftIdle/.droneSwarmRightIdle by facing."
+    },
+    {
+      "label": "drone_swarm_right_idle_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/DroneSwarmRightIdleAnim.spriteatlas/",
+      "output_format": "spritesheet",
+      "frames": 7,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": true,
+      "notes": "sips -f horizontal of drone_swarm_left_idle_anim per-frame (frames renamed drone_swarm_right_idle_0X). No SpriteCook asset_id."
     },
     {
       "asset_id": "b8f0994c-aea5-4c49-bc75-d6224a128bca",
@@ -670,14 +692,25 @@
       "asset_id": "98f63bf1-e1b7-45d3-aff0-a26c191e8633",
       "label": "gorilla_friendly_idle_anim",
       "role": "enemy",
-      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaIdleAnim.spriteatlas/",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaRightIdleAnim.spriteatlas/",
       "output_format": "spritesheet",
       "animated_from": "f6acc93b-89b3-49b4-8aa5-c36837bd2f48",
       "frames": 7,
       "frame_size": [640, 640],
       "fps": 8,
       "loops": true,
-      "notes": "ACTIVE friendly idle (generated via MCP animate 2026-05-28; service was intermittent). Calm breathing loop, banana-held. 5120x640 PNG spritesheet sliced via sips; frame 1 dropped (two-gorilla glitch) -> 7 frames as imagesets 01-07. Subject framing (~0.89w x 0.99h) matches gorilla_friendly_windup_throw_anim, so idle->windup no longer changes the gorilla's rendered size. Replaces the 1024px static still as the gorilla's idle (still kept as fallback in Gorilla.imageset)."
+      "notes": "ACTIVE friendly idle, facing RIGHT (generated via MCP animate 2026-05-28; service was intermittent). Calm breathing loop, banana-held. 5120x640 PNG spritesheet sliced via sips; frame 1 dropped (two-gorilla glitch) -> 7 frames as imagesets 01-07. Subject framing (~0.89w x 0.99h) matches gorilla_friendly_windup_throw_anim, so idle->windup no longer changes the gorilla's rendered size. Renamed 2026-05-28 from GorillaIdleAnim when the boss got an L/R pair; EnemySystem.idleAnimation picks .gorillaLeftIdle/.gorillaRightIdle by facing."
+    },
+    {
+      "label": "gorilla_left_idle_anim",
+      "role": "enemy",
+      "asset_path": "GalaxyMonkey/Assets.xcassets/GorillaLeftIdleAnim.spriteatlas/",
+      "output_format": "spritesheet",
+      "frames": 7,
+      "frame_size": [640, 640],
+      "fps": 8,
+      "loops": true,
+      "notes": "sips -f horizontal of gorilla_friendly_idle_anim per-frame (frames renamed gorilla_left_idle_0X). No SpriteCook asset_id."
     },
     {
       "asset_id": "26e861ae-90e6-40a5-aebb-a52f907ba147",
