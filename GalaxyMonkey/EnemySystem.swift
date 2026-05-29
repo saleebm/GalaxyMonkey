@@ -85,6 +85,7 @@ final class EnemySystem {
             e.node.position.x += dx / mag * e.speed * dtF
             e.node.position.y += dy / mag * e.speed * dtF
 
+            updateFacing(e, dx: dx)
             updateMotionState(e, prev: prev, dt: dt)
             tickAttack(e, dx: dx, dy: dy, distance: mag, dt: dt)
             i += 1
@@ -114,7 +115,45 @@ final class EnemySystem {
         }
         visual.removeAction(forKey: "loop")
         visual.run(loop, withKey: "loop")
+        e.currentSet = resolved
         e.animState = desired
+    }
+
+    /// Re-derives L/R facing from the enemy's horizontal movement toward the
+    /// player and swaps the displayed sprite when it flips. Enemies chase a
+    /// moving target, so spawn-time facing goes stale — this keeps the sprite
+    /// pointing the way the enemy actually travels. A deadzone on `dx` avoids
+    /// flicker when the approach is near-vertical.
+    private func updateFacing(_ e: Enemy, dx: CGFloat) {
+        guard abs(dx) >= Tuning.Enemy.facingFlipDeadzonePx else { return }
+        let desiredLeft = dx < 0            // dx<0 => moving left => left sprite
+        guard desiredLeft != e.facingLeft else { return }
+        e.facingLeft = desiredLeft
+
+        guard let visual = e.visual as? SKSpriteNode else { return }
+        // Don't interrupt the gorilla windup; it captured facing at its start
+        // and the post-throw idle restart corrects facing on the next frame.
+        if visual.action(forKey: "windup") != nil { return }
+        applyFacingVisual(e, visual: visual)
+    }
+
+    private func applyFacingVisual(_ e: Enemy, visual: SKSpriteNode) {
+        let set: AnimationSet? = (e.animState == .walk)
+            ? walkAnimation(for: e.type, facingLeft: e.facingLeft)
+            : idleAnimation(for: e.type, facingLeft: e.facingLeft)
+        let resolved = set ?? idleAnimation(for: e.type, facingLeft: e.facingLeft)
+
+        if let resolved, let loop = AnimationCatalog.loop(resolved, frameDuration: 0.125) {
+            // No-op for facing-agnostic atlases (resolves identically L/R).
+            guard resolved != e.currentSet else { return }
+            visual.removeAction(forKey: "loop")
+            visual.run(loop, withKey: "loop")
+            e.currentSet = resolved
+            return
+        }
+        // Static-imageset fallback (no atlas): swap the texture directly.
+        let sprite = e.facingLeft ? e.type.leftSprite : e.type.rightSprite
+        if let tex = SpriteCatalog.texture(for: sprite) { visual.texture = tex }
     }
 
     private func tickAttack(_ e: Enemy, dx: CGFloat, dy: CGFloat, distance: CGFloat, dt: TimeInterval) {
@@ -182,8 +221,10 @@ final class EnemySystem {
         }
         actions.append(SKAction.run { [weak visual, weak e] in
             guard let visual else { return }
-            if let loop = AnimationCatalog.loop(facingLeft ? .gorillaLeftIdle : .gorillaRightIdle, frameDuration: 0.125) {
+            let idleSet: AnimationSet = facingLeft ? .gorillaLeftIdle : .gorillaRightIdle
+            if let loop = AnimationCatalog.loop(idleSet, frameDuration: 0.125) {
                 visual.run(loop, withKey: "loop")
+                e?.currentSet = idleSet
             }
             // Gorilla never enters the walk state (no walk atlas), so reset
             // the tracked state so updateMotionState doesn't try to switch
@@ -304,14 +345,19 @@ final class EnemySystem {
         body.collisionBitMask = 0
         root.physicsBody = body
 
-        return Enemy(node: root,
-                     type: type,
-                     hp: type.hp,
-                     speed: speed,
-                     radius: radius,
-                     facingLeft: facingLeft,
-                     visual: visualChild,
-                     attackCooldown: type.attack.initialCooldown)
+        let e = Enemy(node: root,
+                      type: type,
+                      hp: type.hp,
+                      speed: speed,
+                      radius: radius,
+                      facingLeft: facingLeft,
+                      visual: visualChild,
+                      attackCooldown: type.attack.initialCooldown)
+        // Mirror makeEnemyVisual's atlas choice so facing swaps have an
+        // accurate starting point for the no-op guard.
+        e.currentSet = walkAnimation(for: type, facingLeft: facingLeft)
+            ?? idleAnimation(for: type, facingLeft: facingLeft)
+        return e
     }
 
     private func makeEnemyVisual(type: EnemyType, facingLeft: Bool, sprite: Sprite, radius: CGFloat) -> SKNode {
@@ -393,10 +439,13 @@ final class EnemySystem {
         var hp: Int
         let speed: CGFloat
         let radius: CGFloat
-        let facingLeft: Bool
+        var facingLeft: Bool
         let visual: SKNode
         var attackCooldown: TimeInterval
         var animState: AnimState
+        /// Atlas currently driving the "loop" action, so facing swaps can
+        /// skip work when the resolved set is unchanged (facing-agnostic).
+        var currentSet: AnimationSet?
 
         init(node: SKNode, type: EnemyType, hp: Int, speed: CGFloat,
              radius: CGFloat, facingLeft: Bool, visual: SKNode,
@@ -410,6 +459,7 @@ final class EnemySystem {
             self.visual = visual
             self.attackCooldown = attackCooldown
             self.animState = .walk
+            self.currentSet = nil
         }
     }
 }

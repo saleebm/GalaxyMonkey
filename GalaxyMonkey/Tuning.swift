@@ -78,6 +78,10 @@ enum Tuning {
         // at ~80·speedMul pt/s baseline, so the threshold sits well below
         // even the slowest archetype (gorilla at 40 pt/s).
         static let walkSpeedThresholdPx: CGFloat = 12
+
+        // Min horizontal distance-to-player (world px) before an enemy flips
+        // its L/R facing. Deadzone prevents flicker on near-vertical approaches.
+        static let facingFlipDeadzonePx: CGFloat = 8
     }
 
     enum Joystick {
