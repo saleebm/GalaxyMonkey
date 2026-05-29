@@ -43,6 +43,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var isGameOver = false
     private var isInPauseMenu = false
     private var isInSettings = false
+    // Our own intent-to-pause flag. `scene.isPaused` can't be trusted to halt
+    // the gameplay tick: SKView auto-clears it on foreground (see
+    // applicationDidGainFocus), and enemy/bullet motion is plain position math
+    // in update(_:) rather than SKActions, so it keeps running even when
+    // SpriteKit "pauses". This flag gates the gameplay portion of update(_:)
+    // independently, so a screen-lock can't leave enemies marching mid-pause.
+    private var gameplayPaused = false
     // Which settings slider is currently being dragged (nil = no drag in
     // progress). Reset on touchesEnded/Cancelled.
     private enum SliderDrag { case music, sfx }
@@ -193,6 +200,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     /// pause menu when the run is active so the player sees state on return.
     func applicationDidLoseFocus() {
         isPaused = true
+        gameplayPaused = true
         if isStarted, !isGameOver, !isInPauseMenu, !isInSettings {
             enterPauseMenu()
         }
@@ -206,8 +214,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func applicationDidGainFocus() {
         if isInPauseMenu || isInSettings {
             isPaused = true
+            gameplayPaused = true
         } else {
             isPaused = false
+            gameplayPaused = false
         }
     }
 
@@ -217,6 +227,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // hides so the menu's Resume label is the unambiguous way out.
         audio.duckMusic()
         isPaused = true
+        gameplayPaused = true
         isInPauseMenu = true
         hud.setPauseButtonVisible(false)
         moveStick.cancelAllTouches()
@@ -235,6 +246,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // depends on transitioning false→true; the post-resume tick reads
         // `lastUpdateTime == 0` and emits dt = 0).
         lastUpdateTime = 0
+        gameplayPaused = false
         isPaused = false
         audio.unduckMusic()
         hud.setPauseButtonVisible(true)
@@ -256,6 +268,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         isStarted = false
         lastUpdateTime = 0
         player.reset()
+        gameplayPaused = false
         isPaused = false
         // Tear down the music node so the next `audio.startMusic()` call (on
         // the next Tap-to-Start) spins up a fresh one. Without this, startMusic
@@ -529,6 +542,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         guard isStarted, !isGameOver else { return }
 
+        // Hard stop for the gameplay tick while paused. We can't rely on
+        // SpriteKit's isPaused alone — SKView clears it on foreground and enemy
+        // motion is plain position math here, not SKActions — so this guard is
+        // what actually keeps enemies/bullets/spawns frozen behind the pause
+        // menu (e.g. across a screen-lock). The clock was advanced above, and
+        // the isPaused setter zeroes lastUpdateTime on resume, so the first
+        // live frame after unpause still emits dt = 0 rather than a huge delta.
+        guard !gameplayPaused else { return }
+
         elapsed += dt
 
         // Physical controller takes precedence over the on-screen sticks
@@ -717,6 +739,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         elapsed = 0
         score = 0
         isGameOver = false
+        gameplayPaused = false
         lastUpdateTime = 0
         player.reset()
         hud.setPauseButtonVisible(true)
