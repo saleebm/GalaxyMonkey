@@ -31,7 +31,11 @@ class HUDController(
         stage.draw()
     }
 
+    private var disposed = false
+
     override fun dispose() {
+        if (disposed) return
+        disposed = true
         stage.dispose()
         shapeRenderer.dispose()
     }
