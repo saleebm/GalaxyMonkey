@@ -1,12 +1,16 @@
 package dev.copt.galaxymonkey
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Preferences
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
+class GameScreen(
+    private val game: GalaxyMonkeyGame,
+    private val prefs: Preferences? = null,
+) : ScreenAdapter() {
 
     val camera = OrthographicCamera()
     private val viewport = ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera)
@@ -30,6 +34,25 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         private set
     var gameplayPaused = false
         private set
+
+    var score = 0
+        private set
+
+    var onStartRun: (() -> Unit)? = null
+    var onGameOver: ((score: Int, best: Int) -> Unit)? = null
+    var onRestart: (() -> Unit)? = null
+    var onReturnToStart: (() -> Unit)? = null
+
+    fun bestScore(): Int = prefs?.getInteger(KEY_BEST_SCORE, 0) ?: 0
+
+    private fun persistBest(value: Int) {
+        prefs?.putInteger(KEY_BEST_SCORE, value)
+        prefs?.flush()
+    }
+
+    fun addScore(points: Int) {
+        score += points
+    }
 
     override fun render(delta: Float) {
         timestep.advance(delta) { update(it) }
@@ -61,8 +84,10 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         isStarted = true
         isGameOver = false
         gameplayPaused = false
+        score = 0
         resetClock()
-        Gdx.app.log("GameScreen", "lifecycle: startGame")
+        onStartRun?.invoke()
+        Gdx.app.log("GameScreen", "gameflow: start")
     }
 
     fun enterPauseMenu() {
@@ -96,10 +121,15 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         }
     }
 
-    fun gameOver() {
+    fun triggerGameOver() {
+        if (isGameOver) return
         isGameOver = true
         gameplayPaused = true
-        Gdx.app.log("GameScreen", "lifecycle: gameOver")
+        val best = bestScore()
+        val newBest = maxOf(score, best)
+        if (newBest > best) persistBest(newBest)
+        onGameOver?.invoke(score, newBest)
+        Gdx.app.log("GameScreen", "gameflow: gameover score=$score best=$newBest")
     }
 
     fun restart() {
@@ -107,9 +137,11 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         isInPauseMenu = false
         isInSettings = false
         gameplayPaused = false
+        score = 0
         resetClock()
         isStarted = true
-        Gdx.app.log("GameScreen", "lifecycle: restart")
+        onRestart?.invoke()
+        Gdx.app.log("GameScreen", "gameflow: restart")
     }
 
     fun returnToStart() {
@@ -118,8 +150,10 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         isInPauseMenu = false
         isInSettings = false
         gameplayPaused = false
+        score = 0
         resetClock()
-        Gdx.app.log("GameScreen", "lifecycle: returnToStart")
+        onReturnToStart?.invoke()
+        Gdx.app.log("GameScreen", "gameflow: returnToStart")
     }
 
     override fun pause() {
@@ -155,5 +189,7 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         const val WORLD_HEIGHT = 375f
         const val STEP = 1f / 60f
         const val MAX_FRAME_TIME = 0.25f
+        const val KEY_BEST_SCORE = "best_score"
+        const val PREFS_NAME = "galaxymonkey"
     }
 }

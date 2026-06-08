@@ -168,7 +168,7 @@ class GameScreenLifecycleTest {
     @Test
     fun `gameOver freezes gameplay`() {
         screen.startGame()
-        screen.gameOver()
+        screen.triggerGameOver()
         assertTrue(screen.isGameOver)
         assertTrue(screen.gameplayPaused)
     }
@@ -177,7 +177,7 @@ class GameScreenLifecycleTest {
     fun `restart clears all flags and resumes`() {
         screen.startGame()
         screen.enterPauseMenu()
-        screen.gameOver()
+        screen.triggerGameOver()
         screen.restart()
         assertTrue(screen.isStarted)
         assertFalse(screen.isGameOver)
