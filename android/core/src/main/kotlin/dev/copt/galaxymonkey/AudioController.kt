@@ -113,7 +113,7 @@ class AudioController(
         Gdx.app.log("AudioController", "SFX volume set: ${settings.sfxVolume}")
     }
 
-    private fun effectiveMusicVolume(): Float =
+    internal fun effectiveMusicVolume(): Float =
         (settings.musicVolume * musicDuckFactor).coerceIn(0f, 1f)
 
     private fun applyMusicVolume() {
@@ -131,9 +131,17 @@ class AudioController(
     fun play(sfx: Sfx, at: Vector2, baseVolume: Float = 1f) {
         val listener = listenerProvider()
         val d = listener.dst(at)
-        val t = (d / Tuning.Audio.maxDistance).coerceIn(0f, 1f)
-        val attenuation = (1f - t) * (1f - Tuning.Audio.minVolume) + Tuning.Audio.minVolume
+        val attenuation = spatialAttenuation(d)
         play(sfx, baseVolume * attenuation)
+    }
+
+    internal val duckFactor: Float get() = musicDuckFactor
+
+    companion object {
+        fun spatialAttenuation(distance: Float): Float {
+            val t = (distance / Tuning.Audio.maxDistance).coerceIn(0f, 1f)
+            return (1f - t) * (1f - Tuning.Audio.minVolume) + Tuning.Audio.minVolume
+        }
     }
 
     override fun dispose() {
