@@ -71,6 +71,7 @@ object SpriteCatalog {
     }
 
     fun region(sprite: Sprite): TextureRegion? {
+        if (!::atlas.isInitialized) return null
         cache[sprite]?.let { return it }
         if (sprite in missing) return null
         val region = atlas.findRegion(sprite.regionName)

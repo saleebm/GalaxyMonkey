@@ -37,8 +37,8 @@ class GameScreen(
     // --- Render layers (track6) ---
     internal val cameraFollow = CameraFollow()
     internal val screenShake = ScreenShake()
-    private val starfield = Starfield(WORLD_WIDTH, WORLD_HEIGHT)
-    private val planetField = PlanetField(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f)
+    internal val starfield = Starfield(WORLD_WIDTH, WORLD_HEIGHT)
+    internal val planetField = PlanetField(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f)
     internal val vfxPool = VFXPool()
     internal val thruster = ThrusterEmitter()
     private val shapeRenderer = ShapeRenderer()
