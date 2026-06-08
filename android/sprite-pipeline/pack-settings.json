@@ -1,0 +1,15 @@
+{
+  "pot": false,
+  "maxWidth": 4096,
+  "maxHeight": 4096,
+  "paddingX": 2,
+  "paddingY": 2,
+  "duplicatePadding": true,
+  "stripWhitespaceX": false,
+  "stripWhitespaceY": false,
+  "premultiplyAlpha": false,
+  "filterMin": "Linear",
+  "filterMag": "Linear",
+  "edgePadding": true,
+  "fast": false
+}

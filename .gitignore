@@ -84,3 +84,20 @@ test-evidence/
 .env.local
 
 .mcp.json
+.claude/settings.local.json
+
+# --- Android port (galaxy_monkey) ---
+# Generated atlas pages (154MB) — regenerate via android/sprite-pipeline/pack-atlas.sh
+/android/app/assets/game*.png
+# Sprite-pipeline intermediates
+/android/sprite-pipeline/stage/
+/android/sprite-pipeline/.cache/
+# Orchestration scaffolding + editor/tooling cruft
+/.ntm/
+/.vscode/
+/cline.mcp.json
+/cursor.mcp.json
+/gemini.mcp.json
+/opencode.json
+/windsurf.mcp.json
+*.bak
