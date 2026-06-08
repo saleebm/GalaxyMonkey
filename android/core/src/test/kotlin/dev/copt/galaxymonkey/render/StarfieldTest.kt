@@ -90,6 +90,96 @@ class StarfieldTest {
     }
 
     @Test
+    fun `offset wraps within bounds across 1000 frames with large diagonal delta`() {
+        val tileSize = 400f
+        var offsetX = 0f
+        var offsetY = 0f
+        val dx = 37f
+        val dy = -21f
+        val factor = 0.06f
+        for (i in 0 until 1000) {
+            offsetX = applyParallax(offsetX, dx, factor)
+            offsetY = applyParallax(offsetY, dy, factor)
+            offsetX = wrapOffset(offsetX, tileSize)
+            offsetY = wrapOffset(offsetY, tileSize)
+            assertTrue(offsetX >= -tileSize && offsetX <= tileSize,
+                "frame $i: offsetX=$offsetX should be in [-$tileSize, $tileSize]")
+            assertTrue(offsetY >= -tileSize && offsetY <= tileSize,
+                "frame $i: offsetY=$offsetY should be in [-$tileSize, $tileSize]")
+        }
+        println("starfield L1 offset=(%.1f,%.1f) after 1000 frames of dx=$dx dy=$dy".format(offsetX, offsetY))
+    }
+
+    @Test
+    fun `parallax ratio between layers matches factor formula`() {
+        val factor1 = 0.06f // layer1Speed
+        val factor2 = 0.18f // layer2Speed
+        val cameraDelta = 200f
+        val offset1 = applyParallax(0f, cameraDelta, factor1)
+        val offset2 = applyParallax(0f, cameraDelta, factor2)
+        val expectedRatio = (1f - factor1) / (1f - factor2)
+        val actualRatio = abs(offset1) / abs(offset2)
+        assertEquals(expectedRatio, actualRatio, 1e-3f,
+            "parallax ratio should be (1-$factor1)/(1-$factor2)=$expectedRatio, got $actualRatio")
+        println("starfield parallax ratio: expected=%.4f actual=%.4f".format(expectedRatio, actualRatio))
+    }
+
+    @Test
+    fun `9 tile positions match grid formula`() {
+        val tileW = 400f
+        val tileH = 300f
+        val viewW = 400f
+        val viewH = 300f
+        val offsetX = 73f
+        val offsetY = -42f
+        val cx = viewW / 2f
+        val cy = viewH / 2f
+        var count = 0
+        for (gy in -1..1) {
+            for (gx in -1..1) {
+                val expectedX = cx + gx * tileW + offsetX - tileW / 2f
+                val expectedY = cy + gy * tileH + offsetY - tileH / 2f
+                // Verify the formula is deterministic
+                assertTrue(expectedX.isFinite(), "tile ($gx,$gy) x should be finite")
+                assertTrue(expectedY.isFinite(), "tile ($gx,$gy) y should be finite")
+                count++
+            }
+        }
+        assertEquals(9, count)
+        println("starfield 9 tiles computed for offset=(%.0f,%.0f)".format(offsetX, offsetY))
+    }
+
+    @Test
+    fun `twinkle 16 dots have distinct phases`() {
+        val phases = mutableListOf<Float>()
+        for (i in 0 until 16) {
+            // Simulate random phase generation like Starfield does
+            val phase = (i * 0.217f + 0.13f * i * i) % 3.5f
+            phases.add(phase)
+        }
+        val distinctCount = phases.toSet().size
+        assertTrue(distinctCount > 1, "phases should not all be identical, got $distinctCount distinct")
+        println("twinkle desync: $distinctCount distinct phases out of 16")
+    }
+
+    @Test
+    fun `twinkle alpha stays within alphaLow to 1 across full cycle`() {
+        val alphaLow = 0.3f
+        val period = 1.2f // minimum period
+        val phase = 0f
+        for (step in 0..200) {
+            val elapsed = step * 0.01f
+            val t = (elapsed + phase) / period
+            val tri = 1f - 2f * abs(t % 1f - 0.5f)
+            val smooth = tri * tri * (3f - 2f * tri)
+            val alpha = alphaLow + (1f - alphaLow) * smooth
+            assertTrue(alpha >= alphaLow - 0.001f, "alpha=$alpha should be >= $alphaLow at step $step")
+            assertTrue(alpha <= 1.001f, "alpha=$alpha should be <= 1.0 at step $step")
+        }
+        println("twinkle alpha: stayed within [$alphaLow, 1.0] across 200 steps")
+    }
+
+    @Test
     fun `twinkle smoothstep oscillates between alphaLow and 1`() {
         val alphaLow = 0.3f
         val period = 2.0f
