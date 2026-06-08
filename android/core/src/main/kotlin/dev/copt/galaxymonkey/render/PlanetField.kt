@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.Disposable
 import dev.copt.galaxymonkey.Sprite
 import dev.copt.galaxymonkey.SpriteCatalog
 import dev.copt.galaxymonkey.Tuning
+import kotlin.math.atan2
 
 // Solar orrery: sun at world center, 8 planets starting at phase 0
 // (conjunction line), moons, asteroid belt, orbit rings. Static shading
@@ -39,11 +40,36 @@ class PlanetField(
         var drawBehindSun = false
     }
 
+    private class Comet(
+        val startX: Float, val startY: Float,
+        val endX: Float, val endY: Float,
+        val duration: Float,
+    ) {
+        var elapsed = 0f
+        var x = startX
+        var y = startY
+        var rotation = 0f
+        var alive = true
+        var trailAccum = 0f
+    }
+
+    private class TrailParticle {
+        var x = 0f; var y = 0f
+        var age = 0f; var lifetime = 0f
+        var scale = 0f; var scaleSpeed = 0f
+        var alpha = 0f; var alphaSpeed = 0f
+        var alive = false
+    }
+
     private val orbits = mutableListOf<Orbit>()
     private val orbitRadii = mutableListOf<Float>()
     private var sunRegion: TextureRegion? = null
     private var sunScale = 1f
     private var coronaPhase = 0f
+
+    private val comets = mutableListOf<Comet>()
+    private val trailParticles = Array(512) { TrailParticle() }
+    private var cometCountdown = Tuning.World.cometInitialDelay
 
     init {
         buildSun()
@@ -67,6 +93,8 @@ class PlanetField(
                 orbit.drawBehindSun = orbit.y >= 0f
             }
         }
+
+        updateComets(dt)
     }
 
     fun drawRings(shapeRenderer: ShapeRenderer) {
@@ -271,7 +299,118 @@ class PlanetField(
         }
     }
 
+    // --- Comet system ---
+
+    private fun updateComets(dt: Float) {
+        cometCountdown -= dt
+        if (cometCountdown <= 0f) {
+            spawnComet()
+            cometCountdown = MathUtils.random(
+                Tuning.World.cometSpawnIntervalMin,
+                Tuning.World.cometSpawnIntervalMax
+            )
+        }
+
+        val iter = comets.iterator()
+        while (iter.hasNext()) {
+            val c = iter.next()
+            c.elapsed += dt
+            if (c.elapsed >= c.duration) {
+                c.alive = false
+                iter.remove()
+                continue
+            }
+            val t = c.elapsed / c.duration
+            c.x = MathUtils.lerp(c.startX, c.endX, t)
+            c.y = MathUtils.lerp(c.startY, c.endY, t)
+            val dx = c.endX - c.startX
+            val dy = c.endY - c.startY
+            c.rotation = atan2(dy, dx)
+
+            c.trailAccum += Tuning.World.cometTrailBirthRate * dt
+            while (c.trailAccum >= 1f) {
+                c.trailAccum -= 1f
+                emitTrailParticle(c.x, c.y)
+            }
+        }
+
+        for (p in trailParticles) {
+            if (!p.alive) continue
+            p.age += dt
+            if (p.age >= p.lifetime) { p.alive = false; continue }
+            p.scale += p.scaleSpeed * dt
+            if (p.scale < 0f) p.scale = 0f
+            p.alpha += p.alphaSpeed * dt
+            if (p.alpha < 0f) p.alpha = 0f
+        }
+    }
+
+    private fun spawnComet() {
+        val r = Tuning.World.cometPathRadius
+        val tilt = Tuning.World.orbitTiltY
+        val entryAngle = MathUtils.random(0f, MathUtils.PI2)
+        val exitAngle = entryAngle + MathUtils.PI +
+            MathUtils.random(-Tuning.World.cometExitJitterRad, Tuning.World.cometExitJitterRad)
+        val startX = MathUtils.cos(entryAngle) * r
+        val startY = MathUtils.sin(entryAngle) * r * tilt
+        val endX = MathUtils.cos(exitAngle) * r
+        val endY = MathUtils.sin(exitAngle) * r * tilt
+        val duration = MathUtils.random(
+            Tuning.World.cometTravelDurationMin,
+            Tuning.World.cometTravelDurationMax
+        )
+        comets.add(Comet(startX, startY, endX, endY, duration))
+    }
+
+    private fun emitTrailParticle(x: Float, y: Float) {
+        val p = trailParticles.firstOrNull { !it.alive } ?: return
+        p.alive = true
+        p.age = 0f
+        p.x = x
+        p.y = y
+        p.lifetime = Tuning.World.cometTrailLifetime
+        p.scale = 0.18f
+        p.scaleSpeed = -0.08f
+        p.alpha = 0.9f
+        p.alphaSpeed = -0.6f
+    }
+
+    fun drawComets(batch: SpriteBatch) {
+        val haloRegion = HaloTextures.halo256Region
+        val dotRegion = HaloTextures.softDot32Region
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE)
+
+        for (p in trailParticles) {
+            if (!p.alive) continue
+            val r = MathUtils.lerp(1f, 0.82f, 0.85f)
+            val g = MathUtils.lerp(1f, 0.95f, 0.85f)
+            val b = MathUtils.lerp(1f, 1.0f, 0.85f)
+            batch.setColor(r, g, b, p.alpha)
+            val size = haloRegion.regionWidth * p.scale
+            batch.draw(haloRegion,
+                worldCenterX + p.x - size / 2f,
+                worldCenterY + p.y - size / 2f,
+                size, size)
+        }
+
+        for (c in comets) {
+            batch.setColor(1f, 1f, 1f, 1f)
+            val headSize = Tuning.World.cometHeadRadius * 2f
+            batch.draw(dotRegion,
+                worldCenterX + c.x - headSize / 2f,
+                worldCenterY + c.y - headSize / 2f,
+                headSize, headSize)
+        }
+
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        batch.setColor(Color.WHITE)
+    }
+
+    internal val activeCometCount: Int get() = comets.size
+    internal val activeTrailCount: Int get() = trailParticles.count { it.alive }
+
     override fun dispose() {
         orbits.clear()
+        comets.clear()
     }
 }
