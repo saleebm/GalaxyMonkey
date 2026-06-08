@@ -1,7 +1,11 @@
 package dev.copt.galaxymonkey
 
 import com.badlogic.gdx.math.Vector2
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 enum class ProjectileKind { BULLET, BOMB }
@@ -30,6 +34,23 @@ class EnemySystem(
             val interval = Tuning.Enemy.spawnIntervalStart +
                 (Tuning.Enemy.spawnIntervalEnd - Tuning.Enemy.spawnIntervalStart) * t
             spawnTimer = interval.toDouble()
+        }
+
+        val target = playerPosition()
+        for (e in enemies) {
+            val prevX = e.position.x
+            val prevY = e.position.y
+
+            val dx = target.x - e.position.x
+            val dy = target.y - e.position.y
+            val mag = max(0.0001f, sqrt(dx * dx + dy * dy))
+            e.position.x += dx / mag * e.speed * dt
+            e.position.y += dy / mag * e.speed * dt
+
+            updateFacing(e, dx)
+            updateMotionState(e, prevX, prevY, dt)
+            tickAttack(e, dx, dy, mag, dt)
+            if (e.windupActive) tickWindup(e, dt)
         }
     }
 
@@ -86,8 +107,115 @@ class EnemySystem(
         enemies.add(enemy)
     }
 
+    private fun updateFacing(e: Enemy, dx: Float) {
+        if (abs(dx) < Tuning.Enemy.facingFlipDeadzonePx) return
+        val desiredLeft = dx < 0
+        if (desiredLeft == e.facingLeft) return
+        if (e.windupActive) return
+        e.facingLeft = desiredLeft
+        applyFacingVisual(e)
+    }
+
+    private fun applyFacingVisual(e: Enemy) {
+        val anim = if (e.animState == Enemy.AnimState.WALK)
+            walkAnimation(e.type, e.facingLeft) ?: idleAnimation(e.type, e.facingLeft)
+        else
+            idleAnimation(e.type, e.facingLeft)
+        if (anim != e.currentSet) e.currentSet = anim
+    }
+
+    private fun updateMotionState(e: Enemy, prevX: Float, prevY: Float, dt: Float) {
+        if (dt <= 0f) return
+        val ddx = e.position.x - prevX
+        val ddy = e.position.y - prevY
+        val observedSpeed = sqrt(ddx * ddx + ddy * ddy) / dt
+        val desired = if (observedSpeed >= Tuning.Enemy.walkSpeedThresholdPx)
+            Enemy.AnimState.WALK else Enemy.AnimState.IDLE
+        if (desired == e.animState) return
+        e.animState = desired
+        val anim = if (desired == Enemy.AnimState.WALK)
+            walkAnimation(e.type, e.facingLeft) ?: idleAnimation(e.type, e.facingLeft)
+        else
+            idleAnimation(e.type, e.facingLeft)
+        if (anim != e.currentSet) e.currentSet = anim
+    }
+
+    private fun tickAttack(e: Enemy, dx: Float, dy: Float, dist: Float, dt: Float) {
+        if (e.attackCooldown == Double.POSITIVE_INFINITY) return
+        e.attackCooldown -= dt
+        if (e.attackCooldown > 0) return
+
+        when (val atk = e.type.attack) {
+            is AttackBehavior.Melee -> return
+            is AttackBehavior.Shoot -> {
+                if (dist > Tuning.Enemy.fireRangePx) {
+                    e.attackCooldown = 0.1
+                    return
+                }
+                val angle = atan2(dy, dx)
+                enemyFireRequest(Vector2(e.position.x, e.position.y), angle, ProjectileKind.BULLET)
+                e.attackCooldown = atk.nextCooldown(rng)
+            }
+            is AttackBehavior.BombThrow -> {
+                val angle = atan2(dy, dx)
+                startWindup(e, angle)
+                e.attackCooldown = atk.nextCooldown(rng) + WINDUP_COOLDOWN_PAD
+            }
+        }
+    }
+
+    private fun startWindup(e: Enemy, angle: Float) {
+        e.windupActive = true
+        e.windupTimer = 0f
+        e.windupFrameIndex = 0
+        e.windupFired = false
+        e.currentSet = if (e.facingLeft)
+            AnimationSet.GORILLA_LEFT_WINDUP else AnimationSet.GORILLA_RIGHT_WINDUP
+        windupAngles[e] = angle
+    }
+
+    private val windupAngles = mutableMapOf<Enemy, Float>()
+
+    private fun tickWindup(e: Enemy, dt: Float) {
+        e.windupTimer += dt
+        var accumulated = 0f
+        for (i in WINDUP_FRAME_DURATIONS.indices) {
+            accumulated += WINDUP_FRAME_DURATIONS[i]
+            if (e.windupTimer < accumulated) {
+                e.windupFrameIndex = i
+                break
+            }
+            if (i == WINDUP_FRAME_DURATIONS.lastIndex) {
+                finishWindup(e)
+                return
+            }
+        }
+        if (!e.windupFired && e.windupFrameIndex >= WINDUP_RELEASE_FRAME) {
+            e.windupFired = true
+            val angle = windupAngles[e] ?: 0f
+            val origin = Vector2(e.position.x, e.position.y + e.radius * 0.4f)
+            enemyFireRequest(origin, angle, ProjectileKind.BOMB)
+        }
+    }
+
+    private fun finishWindup(e: Enemy) {
+        if (!e.windupFired) {
+            val angle = windupAngles[e] ?: 0f
+            val origin = Vector2(e.position.x, e.position.y + e.radius * 0.4f)
+            enemyFireRequest(origin, angle, ProjectileKind.BOMB)
+            e.windupFired = true
+        }
+        e.windupActive = false
+        e.windupTimer = 0f
+        e.windupFrameIndex = 0
+        windupAngles.remove(e)
+        e.animState = Enemy.AnimState.IDLE
+        e.currentSet = idleAnimation(e.type, e.facingLeft)
+    }
+
     fun reset() {
         enemies.clear()
+        windupAngles.clear()
         spawnTimer = 0.0
         elapsed = 0.0
         regularKillsSinceBoss = 0
@@ -95,6 +223,10 @@ class EnemySystem(
     }
 
     companion object {
+        val WINDUP_FRAME_DURATIONS = floatArrayOf(0.16f, 0.14f, 0.12f, 0.10f, 0.08f, 0.08f, 0.14f, 0.18f)
+        const val WINDUP_RELEASE_FRAME = 3
+        const val WINDUP_COOLDOWN_PAD = 1.0
+
         fun walkAnimation(type: EnemyType, facingLeft: Boolean): AnimationSet? = when (type) {
             EnemyType.GORILLA -> null
             EnemyType.DRONE_SWARM -> null

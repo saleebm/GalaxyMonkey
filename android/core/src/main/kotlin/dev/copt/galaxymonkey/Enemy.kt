@@ -20,5 +20,10 @@ class Enemy(
     var animState: AnimState = AnimState.WALK
     var currentSet: AnimationSet? = null
 
+    var windupActive: Boolean = false
+    var windupTimer: Float = 0f
+    var windupFrameIndex: Int = 0
+    var windupFired: Boolean = false
+
     val zLayer: Int get() = if (type == EnemyType.GORILLA) 47 else 45
 }

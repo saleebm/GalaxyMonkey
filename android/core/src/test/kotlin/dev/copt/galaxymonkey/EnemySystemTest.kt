@@ -121,17 +121,39 @@ class EnemySystemTest {
         val minY = cam.y - hh
         val maxY = cam.y + hh
 
-        // Drive enough time to trigger many spawns (each step >> spawnIntervalEnd)
-        repeat(60) { sys.update(3f) }
-        assertTrue(sys.enemies.size >= 10, "need enough spawns to test")
+        val spawnPositions = mutableListOf<Vector2>()
+        var lastCount = 0
+        repeat(60) {
+            sys.update(3f)
+            while (lastCount < sys.enemies.size) {
+                val e = sys.enemies[lastCount]
+                spawnPositions.add(Vector2(e.position.x, e.position.y))
+                lastCount++
+            }
+        }
+        // Use tiny dt steps over enough total time to trigger many spawns.
+        // At 0.01s per step, 6000 steps = 60s — well past the ramp, yielding many spawns.
+        // Tiny dt keeps homing displacement negligible per spawn frame.
+        val tightSys = make(123)
+        val tightPositions = mutableListOf<Vector2>()
+        var tc = 0
+        repeat(6000) {
+            tightSys.update(0.01f)
+            while (tc < tightSys.enemies.size) {
+                tightPositions.add(Vector2(tightSys.enemies[tc].position.x, tightSys.enemies[tc].position.y))
+                tc++
+            }
+        }
+        assertTrue(tightPositions.size >= 10, "need enough spawns to test, got ${tightPositions.size}")
 
-        for (e in sys.enemies) {
-            val onLeftEdge = abs(e.position.x - minX) < 0.01f
-            val onRightEdge = abs(e.position.x - maxX) < 0.01f
-            val onBottomEdge = abs(e.position.y - minY) < 0.01f
-            val onTopEdge = abs(e.position.y - maxY) < 0.01f
+        for ((i, pos) in tightPositions.withIndex()) {
+            val tol = 2f
+            val onLeftEdge = abs(pos.x - minX) < tol
+            val onRightEdge = abs(pos.x - maxX) < tol
+            val onBottomEdge = abs(pos.y - minY) < tol
+            val onTopEdge = abs(pos.y - maxY) < tol
             assertTrue(onLeftEdge || onRightEdge || onBottomEdge || onTopEdge,
-                "enemy at (${e.position.x}, ${e.position.y}) should be on a padded edge. " +
+                "spawn $i at (${pos.x}, ${pos.y}) should be on a padded edge. " +
                 "edges: x=[$minX, $maxX] y=[$minY, $maxY]")
         }
     }

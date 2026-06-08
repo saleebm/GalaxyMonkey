@@ -1,11 +1,14 @@
 package dev.copt.galaxymonkey
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 
@@ -20,10 +23,45 @@ class HUDController(
     var bestScore: Int = initialBest
         private set
 
+    private val scoreStyle = Label.LabelStyle(font, Color.WHITE)
+    private val bestStyle = Label.LabelStyle(font, Color(1f, 1f, 1f, 0.7f))
+
+    val scoreLabel: Label = Label("Score: 0", scoreStyle).apply {
+        setFontScale(SCORE_FONT_SCALE)
+        setAlignment(Align.left)
+    }
+
+    val bestLabel: Label = Label("Best: $initialBest", bestStyle).apply {
+        setFontScale(BEST_FONT_SCALE)
+        setAlignment(Align.left)
+    }
+
+    init {
+        stage.addActor(scoreLabel)
+        stage.addActor(bestLabel)
+        layoutLabels()
+    }
+
     val inputProcessor: InputProcessor get() = stage
+
+    fun setScore(s: Int) {
+        scoreLabel.setText("Score: $s")
+    }
+
+    fun setBest(b: Int) {
+        bestScore = b
+        bestLabel.setText("Best: $b")
+    }
+
+    private fun layoutLabels() {
+        val h = stage.viewport.worldHeight
+        scoreLabel.setPosition(LABEL_X, h - SCORE_Y_OFFSET)
+        bestLabel.setPosition(LABEL_X, h - BEST_Y_OFFSET)
+    }
 
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
+        layoutLabels()
     }
 
     fun render(delta: Float) {
@@ -46,6 +84,12 @@ class HUDController(
             val dy = touch.y - center.y
             return kotlin.math.abs(dx) <= size.x / 2f && kotlin.math.abs(dy) <= size.y / 2f
         }
+
+        const val LABEL_X = 24f
+        const val SCORE_Y_OFFSET = 36f
+        const val BEST_Y_OFFSET = 56f
+        const val SCORE_FONT_SCALE = 22f / 15f
+        const val BEST_FONT_SCALE = 14f / 15f
 
         const val PAUSE_HIT_WIDTH = 280f
         const val PAUSE_HIT_HEIGHT = 48f
