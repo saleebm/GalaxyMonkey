@@ -21,7 +21,6 @@ object HaloTextures : Disposable {
         softDot32.dispose()
     }
 
-    // 2-stop radial gradient: white(a=255)@center -> white(a=0)@edge
     private fun bakeHalo(size: Int): Texture {
         val pixmap = Pixmap(size, size, Pixmap.Format.RGBA8888)
         val center = size / 2f
@@ -41,7 +40,6 @@ object HaloTextures : Disposable {
         return texture
     }
 
-    // 3-stop radial gradient: a=255@0, a=153@0.5, a=0@1.0
     private fun bakeSoftDot(size: Int): Texture {
         val pixmap = Pixmap(size, size, Pixmap.Format.RGBA8888)
         val center = size / 2f
