@@ -13,6 +13,7 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -34,6 +35,11 @@ dependencies {
     natives(variantOf(libs.gdx.platform) { classifier("natives-armeabi-v7a") })
     natives(variantOf(libs.gdx.platform) { classifier("natives-x86") })
     natives(variantOf(libs.gdx.platform) { classifier("natives-x86_64") })
+
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }
 
 tasks.register("copyNatives") {
