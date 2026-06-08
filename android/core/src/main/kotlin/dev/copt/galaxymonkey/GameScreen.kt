@@ -12,8 +12,13 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
     private val viewport = ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera)
     private val batch get() = game.batch
 
-    private var accumulator = 0f
-    private var firstFrameAfterReset = true
+    private val timestep = FixedTimestep(
+        step = STEP,
+        maxFrameTime = MAX_FRAME_TIME,
+        onClamp = { raw, clamped ->
+            Gdx.app.log("GameScreen", "frame delta ${raw}s exceeds clamp ${clamped}s, discarding excess")
+        },
+    )
 
     var isStarted = false
         private set
@@ -27,29 +32,12 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         private set
 
     override fun render(delta: Float) {
-        val clamped = if (firstFrameAfterReset) {
-            firstFrameAfterReset = false
-            accumulator = 0f
-            0f
-        } else if (delta > MAX_FRAME_TIME) {
-            Gdx.app.log("GameScreen", "frame delta ${delta}s exceeds clamp ${MAX_FRAME_TIME}s, discarding excess")
-            MAX_FRAME_TIME
-        } else {
-            delta
-        }
-
-        accumulator += clamped
-        while (accumulator >= STEP) {
-            update(STEP)
-            accumulator -= STEP
-        }
-
+        timestep.advance(delta) { update(it) }
         draw()
     }
 
     fun resetClock() {
-        firstFrameAfterReset = true
-        accumulator = 0f
+        timestep.resetClock()
     }
 
     private fun update(dt: Float) {
