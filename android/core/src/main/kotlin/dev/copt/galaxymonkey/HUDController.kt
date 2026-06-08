@@ -299,6 +299,70 @@ class HUDController(
 
     private var startTapPulseTime = 0f
 
+    private var gameOverShown = false
+    private var gameOverDimLabel: Label? = null
+    private var gameOverTitleLabel: Label? = null
+    var gameOverResultLabel: Label? = null
+        private set
+    private var gameOverReplayLabel: Label? = null
+    private var replayPulseTime = 0f
+
+    val isGameOverVisible: Boolean get() = gameOverShown
+
+    var onRestartTapped: (() -> Unit)? = null
+
+    fun showGameOver(score: Int, best: Int) {
+        if (gameOverShown) return
+        gameOverShown = true
+
+        val w = stage.viewport.worldWidth
+        val h = stage.viewport.worldHeight
+        val cx = w / 2f
+        val cy = h / 2f
+        val displayBest = maxOf(score, best)
+
+        val dimStyle = Label.LabelStyle(font, Color(0f, 0f, 0f, PAUSE_DIM_ALPHA))
+        gameOverDimLabel = Label("", dimStyle).apply {
+            setSize(w, h)
+            setPosition(0f, 0f)
+        }
+        stage.addActor(gameOverDimLabel)
+
+        val titleStyle = Label.LabelStyle(font, GAME_OVER_RED)
+        gameOverTitleLabel = Label("GAME OVER", titleStyle).apply {
+            setFontScale(PAUSE_TITLE_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy + 40f)
+        }
+        stage.addActor(gameOverTitleLabel)
+
+        val resultStyle = Label.LabelStyle(font, Color.WHITE)
+        gameOverResultLabel = Label("Score $score · Best $displayBest", resultStyle).apply {
+            setFontScale(GAME_OVER_RESULT_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy)
+        }
+        stage.addActor(gameOverResultLabel)
+
+        val replayStyle = Label.LabelStyle(font, Color.WHITE)
+        gameOverReplayLabel = Label("Tap to play again", replayStyle).apply {
+            setFontScale(START_TAP_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy - 40f)
+        }
+        stage.addActor(gameOverReplayLabel)
+    }
+
+    fun dismissGameOver() {
+        if (!gameOverShown) return
+        gameOverShown = false
+        replayPulseTime = 0f
+        gameOverDimLabel?.remove(); gameOverDimLabel = null
+        gameOverTitleLabel?.remove(); gameOverTitleLabel = null
+        gameOverResultLabel?.remove(); gameOverResultLabel = null
+        gameOverReplayLabel?.remove(); gameOverReplayLabel = null
+    }
+
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
         layoutLabels()
@@ -314,6 +378,11 @@ class HUDController(
             startTapPulseTime += delta
             val alpha = 0.75f + 0.25f * kotlin.math.sin(startTapPulseTime * 2f * kotlin.math.PI.toFloat() / START_TAP_PULSE_PERIOD)
             startTapLabel?.color?.a = alpha
+        }
+        if (gameOverShown) {
+            replayPulseTime += delta
+            val alpha = 0.75f + 0.25f * kotlin.math.sin(replayPulseTime * 2f * kotlin.math.PI.toFloat() / START_TAP_PULSE_PERIOD)
+            gameOverReplayLabel?.color?.a = alpha
         }
         stage.act(delta)
         stage.draw()
@@ -361,6 +430,9 @@ class HUDController(
         const val PAUSE_MENU_RESUME_NODE_NAME = "pauseMenuResume"
         const val PAUSE_MENU_SETTINGS_NODE_NAME = "pauseMenuSettings"
         const val PAUSE_MENU_QUIT_NODE_NAME = "pauseMenuQuit"
+
+        val GAME_OVER_RED = Color(1f, 0.40f, 0.40f, 1f)
+        const val GAME_OVER_RESULT_FONT_SCALE = 18f / 15f
 
         const val START_DIM_ALPHA = 0.3f
         val TITLE_GOLD_COLOR = Color(1f, 0.85f, 0.30f, 1f)
