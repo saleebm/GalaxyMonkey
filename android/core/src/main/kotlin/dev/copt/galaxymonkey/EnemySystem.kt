@@ -10,6 +10,11 @@ import kotlin.random.Random
 
 enum class ProjectileKind { BULLET, BOMB }
 
+sealed class EnemyHitResult {
+    data object StillAlive : EnemyHitResult()
+    data class Killed(val score: Int, val position: Vector2, val type: EnemyType, val enemy: Enemy) : EnemyHitResult()
+}
+
 class EnemySystem(
     private val playerPosition: () -> Vector2 = { Vector2() },
     private val cameraPosition: () -> Vector2 = { Vector2() },
@@ -211,6 +216,36 @@ class EnemySystem(
         windupAngles.remove(e)
         e.animState = Enemy.AnimState.IDLE
         e.currentSet = idleAnimation(e.type, e.facingLeft)
+    }
+
+    fun applyHit(enemy: Enemy): EnemyHitResult {
+        val idx = enemies.indexOf(enemy)
+        if (idx < 0) return EnemyHitResult.StillAlive
+        enemy.hp -= 1
+        if (enemy.hp > 0) return EnemyHitResult.StillAlive
+        detachForDeath(idx)
+        return EnemyHitResult.Killed(enemy.type.scoreOnKill, Vector2(enemy.position), enemy.type, enemy)
+    }
+
+    fun killByRef(enemy: Enemy): Enemy? {
+        val idx = enemies.indexOf(enemy)
+        if (idx < 0) return null
+        detachForDeath(idx)
+        return enemy
+    }
+
+    fun contains(enemy: Enemy): Boolean = enemy in enemies
+
+    private fun detachForDeath(index: Int): Enemy {
+        val e = enemies.removeAt(index)
+        e.currentSet = null
+        if (e.type == EnemyType.GORILLA) {
+            bossAlive = false
+        } else {
+            regularKillsSinceBoss += 1
+        }
+        windupAngles.remove(e)
+        return e
     }
 
     fun reset() {
