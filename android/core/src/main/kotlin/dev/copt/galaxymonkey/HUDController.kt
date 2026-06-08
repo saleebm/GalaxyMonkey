@@ -7,7 +7,9 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.viewport.ScreenViewport
@@ -36,9 +38,35 @@ class HUDController(
         setAlignment(Align.left)
     }
 
+    val livesIcons: List<Image>
+    private val livesFallbackLabel: Label?
+
     init {
         stage.addActor(scoreLabel)
         stage.addActor(bestLabel)
+
+        val heartRegion = try { SpriteCatalog.region(Sprite.LIFE_HEART) } catch (_: UninitializedPropertyAccessException) { null }
+        if (heartRegion != null) {
+            val scale = ICON_TARGET_SIZE / maxOf(heartRegion.regionWidth.toFloat(), heartRegion.regionHeight.toFloat())
+            val iconW = heartRegion.regionWidth * scale
+            val iconH = heartRegion.regionHeight * scale
+            livesIcons = List(MAX_LIVES_ICON_SLOT) {
+                Image(TextureRegionDrawable(heartRegion)).apply {
+                    setSize(iconW, iconH)
+                    isVisible = false
+                }
+            }
+            livesIcons.forEach { stage.addActor(it) }
+            livesFallbackLabel = null
+        } else {
+            livesIcons = emptyList()
+            livesFallbackLabel = Label("Lives: 0", scoreStyle).apply {
+                setFontScale(SCORE_FONT_SCALE)
+                setAlignment(Align.right)
+            }
+            stage.addActor(livesFallbackLabel)
+        }
+
         layoutLabels()
     }
 
@@ -53,10 +81,32 @@ class HUDController(
         bestLabel.setText("Best: $b")
     }
 
+    fun setLives(l: Int) {
+        if (livesIcons.isNotEmpty()) {
+            for (i in livesIcons.indices) {
+                livesIcons[i].isVisible = i < l
+            }
+        } else {
+            livesFallbackLabel?.setText("Lives: $l")
+        }
+    }
+
     private fun layoutLabels() {
         val h = stage.viewport.worldHeight
+        val w = stage.viewport.worldWidth
         scoreLabel.setPosition(LABEL_X, h - SCORE_Y_OFFSET)
         bestLabel.setPosition(LABEL_X, h - BEST_Y_OFFSET)
+
+        if (livesIcons.isNotEmpty()) {
+            val rightEdge = w - LIVES_RIGHT_MARGIN
+            val topY = h - SCORE_Y_OFFSET
+            val iconW = livesIcons[0].width
+            for (i in livesIcons.indices) {
+                val x = rightEdge - i * (iconW + ICON_GAP) - iconW
+                livesIcons[i].setPosition(x, topY)
+            }
+        }
+        livesFallbackLabel?.setPosition(w - LIVES_RIGHT_MARGIN, h - SCORE_Y_OFFSET)
     }
 
     fun resize(width: Int, height: Int) {
@@ -90,6 +140,10 @@ class HUDController(
         const val BEST_Y_OFFSET = 56f
         const val SCORE_FONT_SCALE = 22f / 15f
         const val BEST_FONT_SCALE = 14f / 15f
+
+        const val LIVES_RIGHT_MARGIN = 24f
+        const val ICON_TARGET_SIZE = 32f
+        const val ICON_GAP = 4f
 
         const val PAUSE_HIT_WIDTH = 280f
         const val PAUSE_HIT_HEIGHT = 48f
