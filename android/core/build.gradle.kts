@@ -25,4 +25,5 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    systemProperty("assetsDir", layout.projectDirectory.dir("../app/assets").asFile.absolutePath)
 }

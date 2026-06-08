@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.utils.Disposable
 
 class GameAssets(
-    resolver: FileHandleResolver = InternalFileHandleResolver()
+    private val resolver: FileHandleResolver = InternalFileHandleResolver()
 ) : Disposable {
 
     private val manager = AssetManager(resolver)
@@ -22,8 +22,7 @@ class GameAssets(
     fun load() {
         manager.load(ATLAS_PATH, TextureAtlas::class.java)
 
-        val musicHandle = Gdx.files.internal(MUSIC_PATH)
-        if (musicHandle.exists()) {
+        if (resolver.resolve(MUSIC_PATH).exists()) {
             manager.load(MUSIC_PATH, Music::class.java)
         } else {
             missingMusic = true
@@ -31,8 +30,7 @@ class GameAssets(
 
         for (sfx in AudioController.Sfx.entries) {
             val path = "sounds/${sfx.filename}"
-            val handle = Gdx.files.internal(path)
-            if (handle.exists()) {
+            if (resolver.resolve(path).exists()) {
                 manager.load(path, Sound::class.java)
             } else {
                 missingSfx.add(sfx)
