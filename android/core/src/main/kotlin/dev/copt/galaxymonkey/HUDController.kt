@@ -381,7 +381,20 @@ class HUDController(
 
     val isSettingsMenuVisible: Boolean get() = settingsMenuShown
 
-    fun showSettingsMenu() {
+    var musicSliderValue = 0f
+        private set
+    var sfxSliderValue = 0f
+        private set
+    private var musicSliderLabel: Label? = null
+    private var sfxSliderLabel: Label? = null
+    private var musicRowContentY = 0f
+    private var sfxRowContentY = 0f
+    private var sliderCtrlCenterX = 0f
+
+    var onMusicVolumeChanged: ((Float) -> Unit)? = null
+    var onSfxVolumeChanged: ((Float) -> Unit)? = null
+
+    fun showSettingsMenu(store: SettingsStore? = null) {
         if (settingsMenuShown) return
         settingsMenuShown = true
 
@@ -424,6 +437,30 @@ class HUDController(
         }
         stage.addActor(settingsBackLabel)
 
+        sliderCtrlCenterX = cx + SLIDER_LABEL_CTRL_X
+        musicRowContentY = SLIDER_MUSIC_ROW_Y
+        sfxRowContentY = SLIDER_SFX_ROW_Y
+
+        val labelStyle = Label.LabelStyle(font, Color.WHITE)
+        musicSliderLabel = Label("Music", labelStyle).apply {
+            setFontScale(BEST_FONT_SCALE)
+            setAlignment(Align.left)
+            setPosition(cx + SLIDER_LABEL_X, settingsViewportY + musicRowContentY)
+            name = SETTINGS_MUSIC_LABEL_NODE_NAME
+        }
+        stage.addActor(musicSliderLabel)
+
+        sfxSliderLabel = Label("SFX", labelStyle).apply {
+            setFontScale(BEST_FONT_SCALE)
+            setAlignment(Align.left)
+            setPosition(cx + SLIDER_LABEL_X, settingsViewportY + sfxRowContentY)
+            name = SETTINGS_SFX_LABEL_NODE_NAME
+        }
+        stage.addActor(sfxSliderLabel)
+
+        musicSliderValue = store?.musicVolume ?: 0.75f
+        sfxSliderValue = store?.sfxVolume ?: 0.75f
+        settingsContentHeight = SLIDER_MUSIC_ROW_Y + 30f
         settingsContentY = 0f
     }
 
@@ -433,10 +470,13 @@ class HUDController(
         settingsDimLabel?.remove(); settingsDimLabel = null
         settingsTitleLabel?.remove(); settingsTitleLabel = null
         settingsBackLabel?.remove(); settingsBackLabel = null
+        musicSliderLabel?.remove(); musicSliderLabel = null
+        sfxSliderLabel?.remove(); sfxSliderLabel = null
         settingsPanelX = 0f; settingsPanelY = 0f
         settingsPanelW = 0f; settingsPanelH = 0f
         settingsViewportW = 0f; settingsViewportH = 0f
         settingsContentY = 0f
+        musicSliderValue = 0f; sfxSliderValue = 0f
     }
 
     fun panSettingsContent(dy: Float) {
@@ -465,6 +505,53 @@ class HUDController(
         val dx = touch.x - vpCx
         val dy = touch.y - vpCy
         return kotlin.math.abs(dx) <= settingsViewportW / 2f && kotlin.math.abs(dy) <= settingsViewportH / 2f
+    }
+
+    fun musicSliderTrackCenter(): Vector2 {
+        val screenY = settingsViewportY + musicRowContentY - settingsContentY
+        return Vector2(sliderCtrlCenterX, screenY)
+    }
+
+    fun sfxSliderTrackCenter(): Vector2 {
+        val screenY = settingsViewportY + sfxRowContentY - settingsContentY
+        return Vector2(sliderCtrlCenterX, screenY)
+    }
+
+    fun musicSliderThumbX(): Float {
+        val trackLeft = sliderCtrlCenterX - SLIDER_TRACK_WIDTH / 2f
+        return trackLeft + musicSliderValue.coerceIn(0f, 1f) * SLIDER_TRACK_WIDTH
+    }
+
+    fun sfxSliderThumbX(): Float {
+        val trackLeft = sliderCtrlCenterX - SLIDER_TRACK_WIDTH / 2f
+        return trackLeft + sfxSliderValue.coerceIn(0f, 1f) * SLIDER_TRACK_WIDTH
+    }
+
+    fun musicSliderHit(touch: Vector2): Boolean {
+        if (!settingsMenuShown) return false
+        val center = musicSliderTrackCenter()
+        return rectHit(center, Vector2(SLIDER_TRACK_WIDTH, SLIDER_HIT_HEIGHT), touch)
+    }
+
+    fun sfxSliderHit(touch: Vector2): Boolean {
+        if (!settingsMenuShown) return false
+        val center = sfxSliderTrackCenter()
+        return rectHit(center, Vector2(SLIDER_TRACK_WIDTH, SLIDER_HIT_HEIGHT), touch)
+    }
+
+    fun updateMusicSliderThumb(value: Float) {
+        musicSliderValue = value.coerceIn(0f, 1f)
+        onMusicVolumeChanged?.invoke(musicSliderValue)
+    }
+
+    fun updateSfxSliderThumb(value: Float) {
+        sfxSliderValue = value.coerceIn(0f, 1f)
+        onSfxVolumeChanged?.invoke(sfxSliderValue)
+    }
+
+    fun sliderValueFromTouch(touch: Vector2, trackCenterX: Float): Float {
+        val trackLeft = trackCenterX - SLIDER_TRACK_WIDTH / 2f
+        return ((touch.x - trackLeft) / SLIDER_TRACK_WIDTH).coerceIn(0f, 1f)
     }
 
     fun resize(width: Int, height: Int) {
@@ -563,5 +650,13 @@ class HUDController(
         const val SETTINGS_DIM_ALPHA = 0.6f
         const val SETTINGS_TITLE_FONT_SCALE = 28f / 15f
         const val SETTINGS_BACK_NODE_NAME = "settingsBack"
+        const val SETTINGS_MUSIC_LABEL_NODE_NAME = "settingsMusicLabel"
+        const val SETTINGS_SFX_LABEL_NODE_NAME = "settingsSfxLabel"
+
+        const val SLIDER_LABEL_X = -150f
+        const val SLIDER_LABEL_CTRL_X = 50f
+        const val SLIDER_MUSIC_ROW_Y = 80f
+        const val SLIDER_SFX_ROW_Y = 40f
+        const val SLIDER_HIT_HEIGHT = 44f
     }
 }
