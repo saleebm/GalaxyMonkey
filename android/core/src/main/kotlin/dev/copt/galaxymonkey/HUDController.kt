@@ -363,6 +363,110 @@ class HUDController(
         gameOverReplayLabel?.remove(); gameOverReplayLabel = null
     }
 
+    private var settingsMenuShown = false
+    private var settingsDimLabel: Label? = null
+    private var settingsTitleLabel: Label? = null
+    private var settingsBackLabel: Label? = null
+    private var settingsPanelX = 0f
+    private var settingsPanelY = 0f
+    private var settingsPanelW = 0f
+    private var settingsPanelH = 0f
+    private var settingsViewportX = 0f
+    private var settingsViewportY = 0f
+    private var settingsViewportW = 0f
+    private var settingsViewportH = 0f
+    var settingsContentY = 0f
+        private set
+    var settingsContentHeight = 0f
+
+    val isSettingsMenuVisible: Boolean get() = settingsMenuShown
+
+    fun showSettingsMenu() {
+        if (settingsMenuShown) return
+        settingsMenuShown = true
+
+        val w = stage.viewport.worldWidth
+        val h = stage.viewport.worldHeight
+        val cx = w / 2f
+        val cy = h / 2f
+
+        settingsPanelW = SETTINGS_PANEL_WIDTH
+        settingsPanelH = minOf(h - 24f, SETTINGS_PANEL_MAX_HEIGHT)
+        settingsPanelX = cx - settingsPanelW / 2f
+        settingsPanelY = cy - settingsPanelH / 2f
+
+        settingsViewportW = settingsPanelW - 40f
+        settingsViewportH = settingsPanelH - SETTINGS_TITLE_RESERVE - SETTINGS_BACK_RESERVE
+        settingsViewportX = cx - settingsViewportW / 2f
+        settingsViewportY = settingsPanelY + SETTINGS_BACK_RESERVE
+
+        val dimStyle = Label.LabelStyle(font, Color(0f, 0f, 0f, SETTINGS_DIM_ALPHA))
+        settingsDimLabel = Label("", dimStyle).apply {
+            setSize(w, h)
+            setPosition(0f, 0f)
+        }
+        stage.addActor(settingsDimLabel)
+
+        val titleStyle = Label.LabelStyle(font, Color.WHITE)
+        settingsTitleLabel = Label("SETTINGS", titleStyle).apply {
+            setFontScale(SETTINGS_TITLE_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, settingsPanelY + settingsPanelH - SETTINGS_TITLE_RESERVE / 2f)
+        }
+        stage.addActor(settingsTitleLabel)
+
+        val backStyle = Label.LabelStyle(font, Color.WHITE)
+        settingsBackLabel = Label("Back", backStyle).apply {
+            setFontScale(START_TAP_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, settingsPanelY + SETTINGS_BACK_RESERVE / 2f)
+            name = SETTINGS_BACK_NODE_NAME
+        }
+        stage.addActor(settingsBackLabel)
+
+        settingsContentY = 0f
+    }
+
+    fun dismissSettingsMenu() {
+        if (!settingsMenuShown) return
+        settingsMenuShown = false
+        settingsDimLabel?.remove(); settingsDimLabel = null
+        settingsTitleLabel?.remove(); settingsTitleLabel = null
+        settingsBackLabel?.remove(); settingsBackLabel = null
+        settingsPanelX = 0f; settingsPanelY = 0f
+        settingsPanelW = 0f; settingsPanelH = 0f
+        settingsViewportW = 0f; settingsViewportH = 0f
+        settingsContentY = 0f
+    }
+
+    fun panSettingsContent(dy: Float) {
+        if (!settingsMenuShown) return
+        val maxScroll = maxOf(0f, settingsContentHeight - settingsViewportH)
+        settingsContentY = (settingsContentY + dy).coerceIn(0f, maxScroll)
+    }
+
+    fun settingsBackHit(touch: Vector2): Boolean {
+        if (!settingsMenuShown) return false
+        val backCenter = settingsBackLabel?.let { Vector2(it.x, it.y) } ?: return false
+        return rectHit(backCenter, Vector2(BACK_PILL_WIDTH, BACK_PILL_HEIGHT), touch)
+    }
+
+    fun settingsPanelContains(touch: Vector2): Boolean {
+        if (!settingsMenuShown) return false
+        val dx = touch.x - (settingsPanelX + settingsPanelW / 2f)
+        val dy = touch.y - (settingsPanelY + settingsPanelH / 2f)
+        return kotlin.math.abs(dx) <= settingsPanelW / 2f && kotlin.math.abs(dy) <= settingsPanelH / 2f
+    }
+
+    fun settingsViewportContains(touch: Vector2): Boolean {
+        if (!settingsMenuShown) return false
+        val vpCx = settingsViewportX + settingsViewportW / 2f
+        val vpCy = settingsViewportY + settingsViewportH / 2f
+        val dx = touch.x - vpCx
+        val dy = touch.y - vpCy
+        return kotlin.math.abs(dx) <= settingsViewportW / 2f && kotlin.math.abs(dy) <= settingsViewportH / 2f
+    }
+
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
         layoutLabels()
@@ -451,5 +555,13 @@ class HUDController(
         const val SLIDER_TRACK_HEIGHT = 6f
         const val SLIDER_THUMB_RADIUS = 11f
         const val MAX_LIVES_ICON_SLOT = 5
+
+        const val SETTINGS_PANEL_WIDTH = 380f
+        const val SETTINGS_PANEL_MAX_HEIGHT = 460f
+        const val SETTINGS_TITLE_RESERVE = 64f
+        const val SETTINGS_BACK_RESERVE = 56f
+        const val SETTINGS_DIM_ALPHA = 0.6f
+        const val SETTINGS_TITLE_FONT_SCALE = 28f / 15f
+        const val SETTINGS_BACK_NODE_NAME = "settingsBack"
     }
 }
