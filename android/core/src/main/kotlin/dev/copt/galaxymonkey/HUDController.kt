@@ -1,6 +1,7 @@
 package dev.copt.galaxymonkey
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -36,6 +37,12 @@ class HUDController(
     }
 
     companion object {
+        fun rectHit(center: Vector2, size: Vector2, touch: Vector2): Boolean {
+            val dx = touch.x - center.x
+            val dy = touch.y - center.y
+            return kotlin.math.abs(dx) <= size.x / 2f && kotlin.math.abs(dy) <= size.y / 2f
+        }
+
         const val PAUSE_HIT_WIDTH = 280f
         const val PAUSE_HIT_HEIGHT = 48f
         const val TOGGLE_PILL_WIDTH = 80f
