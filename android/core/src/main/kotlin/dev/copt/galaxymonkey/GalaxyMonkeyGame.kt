@@ -2,17 +2,26 @@ package dev.copt.galaxymonkey
 
 import com.badlogic.gdx.Game
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
 class GalaxyMonkeyGame : Game() {
 
+    lateinit var batch: SpriteBatch
+        private set
+
     override fun create() {
         Gdx.app.log("GalaxyMonkeyGame", "create()")
+        batch = SpriteBatch()
+        setScreen(GameScreen(this))
     }
 
     override fun render() {
-        Gdx.gl.glClearColor(0.02f, 0.03f, 0.08f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         super.render()
+    }
+
+    override fun dispose() {
+        Gdx.app.log("GalaxyMonkeyGame", "dispose()")
+        screen?.dispose()
+        batch.dispose()
     }
 }
