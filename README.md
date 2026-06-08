@@ -1,11 +1,12 @@
 # Galaxy Monkey
 
-Twin-stick arcade space shooter for iOS, inspired by *Ape Escape*'s
-"Galaxy Monkey" minigame. SpriteKit + SwiftUI, iOS 17+.
+Twin-stick arcade space shooter, inspired by *Ape Escape*'s "Galaxy Monkey"
+minigame. Two platforms: **iOS** (SpriteKit + SwiftUI, shipping) and
+**Android** (LibGDX + Kotlin, in progress).
 
 ## Status
 
-Phase 1 prototype complete:
+### iOS (shipping)
 
 - Twin-stick controls (dynamic dual joysticks, dead zones, drag).
 - Player ship with lives, brief i-frames, and aim-driven auto-fire.
@@ -14,73 +15,125 @@ Phase 1 prototype complete:
 - Parallax starfield + optional space backdrop.
 - SpriteCook art for player ship, gorilla canonical, and space backdrop.
 - Normalized legacy sprites imported as fallbacks for enemies and pickups.
-- ElevenLabs SFX (shot, enemy_shot, explosion, hit, game_over, ui_tap) and
-  a 30s music loop, all bundled as `.caf` under `GalaxyMonkey/Sounds/`.
+- ElevenLabs SFX and a 30s music loop bundled as `.caf`.
 - XCUITest smoke suite (title, start, restart) — three tests, green.
+
+### Android port (in progress)
+
+LibGDX 1.12.1 / Kotlin 2.0.21, landscape-only, `minSdk 24`.
+Mirrors iOS gameplay and feel — the iOS Swift source is the behavioral spec.
+
+- Gradle multi-module: `:core` (Kotlin JVM game logic) + `:app` (Android shell).
+- SpriteCatalog/AnimationCatalog, AudioController, HapticsController, SettingsStore.
+- HUD overlays (start prompt, pause, game-over, settings with sliders + haptics toggle).
+- Fixed-timestep loop, camera follow, screen shake, input facade.
+- 420+ JUnit 5 headless tests via gdx-backend-headless.
 
 ## Layout
 
 ```
-GalaxyMonkey/
-├── project.yml                 # XcodeGen spec
-├── GalaxyMonkey/               # app sources + bundle resources
-│   ├── GalaxyMonkeyApp.swift
-│   ├── ContentView.swift       # SwiftUI host for SpriteView
-│   ├── GameScene.swift         # orchestrator
-│   ├── VirtualJoystick.swift   # dynamic dual-stick input
-│   ├── Player.swift            # ship: movement, aim, HP, invulnerability
-│   ├── ProjectileSystem.swift  # pooled bullets (player + enemy)
-│   ├── EnemySystem.swift       # spawn + homing
-│   ├── HUDController.swift     # score, lives, overlays
-│   ├── Starfield.swift         # parallax stars
-│   ├── SpriteCatalog.swift     # Assets.xcassets loader
-│   ├── AudioController.swift   # music + SFX
-│   ├── Tuning.swift            # gameplay constants
-│   ├── Assets.xcassets/        # imagesets (Player, Gorilla, enemies, …)
-│   ├── Sounds/                 # .caf SFX + music loop
-│   ├── Info.plist
-│   ├── PrivacyInfo.xcprivacy
-│   └── LaunchScreen.storyboard
-├── GalaxyMonkeyUITests/        # XCUITest smoke suite
-├── sprite-pipeline/            # SpriteCook + legacy-port tooling
-│   ├── normalized/             # legacy PNGs (gitignored after first port)
-│   ├── spritecook-assets.json  # manifest of SC-generated assets
-│   ├── import-to-xcassets.sh   # normalized → Assets.xcassets
-│   └── SPRITECOOK.md           # generation recipes
-├── media-assets.json           # manifest of bundled audio
-├── run-sim.sh                  # build + install + launch on Simulator
-├── run-device.sh               # build + install + launch on device
-├── test-smoke.sh               # full xcodebuild test
-└── test-xcui.sh                # only the UI test target
+├── ios/                            # iOS SpriteKit game (shipping)
+│   ├── project.yml                 # XcodeGen spec
+│   ├── GalaxyMonkey/               # app sources + bundle resources
+│   │   ├── GalaxyMonkeyApp.swift
+│   │   ├── GameScene.swift         # orchestrator (behavioral spec for Android)
+│   │   ├── VirtualJoystick.swift
+│   │   ├── Player.swift
+│   │   ├── EnemySystem.swift
+│   │   ├── HUDController.swift
+│   │   ├── AudioController.swift
+│   │   ├── Tuning.swift
+│   │   ├── Assets.xcassets/
+│   │   └── Sounds/                 # .caf SFX + music
+│   ├── GalaxyMonkeyUITests/
+│   ├── sprite-pipeline/
+│   ├── run-sim.sh
+│   ├── run-device.sh
+│   ├── test-smoke.sh
+│   └── test-xcui.sh
+│
+├── android/                        # Android LibGDX/Kotlin port
+│   ├── core/                       # :core — Kotlin JVM game logic
+│   │   └── src/main/kotlin/dev/copt/galaxymonkey/
+│   │       ├── GalaxyMonkeyGame.kt
+│   │       ├── GameScreen.kt       # mirrors GameScene.swift
+│   │       ├── Player.kt
+│   │       ├── EnemySystem.kt
+│   │       ├── HUDController.kt
+│   │       ├── AudioController.kt
+│   │       ├── Tuning.kt
+│   │       └── SpriteCatalog.kt
+│   ├── app/                        # :app — Android launcher + manifest
+│   │   └── src/main/kotlin/dev/copt/galaxymonkey/
+│   │       └── AndroidLauncher.kt
+│   ├── app/assets/                 # game.atlas + sounds/ (OGG)
+│   ├── sprite-pipeline/            # atlas packing + audio conversion
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── gradle/libs.versions.toml
+│
+├── AGENTS.md
+├── CLAUDE.md
+└── README.md
 ```
 
 ## Build and run
+
+### iOS
 
 Prerequisites: Xcode 17 / iOS 17 SDK and `xcodegen`.
 
 ```bash
 brew install xcodegen
-./run-sim.sh                # generates xcodeproj on first run
+cd ios && ./run-sim.sh          # generates xcodeproj on first run
 ```
 
-Force a project regeneration after editing `project.yml`:
+Force a project regeneration after editing `ios/project.yml`:
 
 ```bash
-REGEN=1 ./run-sim.sh
+cd ios && REGEN=1 ./run-sim.sh
 ```
 
-Run on a connected device (requires automatic signing with the team in
-`project.yml`):
+Run on a connected device:
 
 ```bash
-./run-device.sh
+cd ios && ./run-device.sh
+```
+
+### Android
+
+Prerequisites: JDK 17+, Android SDK (compileSdk 34, minSdk 24).
+
+```bash
+cd android && ./gradlew :app:assembleDebug
+```
+
+Install and launch on a connected device/emulator:
+
+```bash
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n dev.copt.galaxymonkey/.AndroidLauncher
+```
+
+Run headless unit tests:
+
+```bash
+cd android && ./gradlew :core:test
+```
+
+Run instrumentation smoke test (requires device/emulator):
+
+```bash
+cd android && ./gradlew :app:connectedDebugAndroidTest
 ```
 
 ## Tests
 
+### iOS
+
 ```bash
-./test-smoke.sh             # build + run full UI test suite
-./test-xcui.sh              # UI tests only
+cd ios && ./test-smoke.sh       # build + run full UI test suite
+cd ios && ./test-xcui.sh        # UI tests only
 ```
 
 The XCUI suite drives the game by tapping the title prompt and using the
@@ -90,6 +143,12 @@ game-over overlay — same pattern as PenguinSlide.
 Audio is disabled on the iOS Simulator. The simulator's coreaudio host
 frequently RPC-times-out under SpriteKit's audio engine. See
 `AudioController.isDisabled`.
+
+### Android
+
+```bash
+cd android && ./gradlew :core:test    # 420+ headless JUnit 5 tests
+```
 
 ## Controls
 
