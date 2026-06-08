@@ -33,6 +33,7 @@ class PlanetField(
         val backZ: Float? = null,
         val parentOrbit: Orbit? = null,
         val spinSpeed: Float = 0f,
+        val useTerminator: Boolean = false,
     ) {
         var x = 0f
         var y = 0f
@@ -151,6 +152,14 @@ class PlanetField(
         val cy = worldCenterY + orbit.y
         val hw = orbit.displayW / 2f
         val hh = orbit.displayH / 2f
+
+        val shader = TerminatorShader.program
+        if (orbit.useTerminator && shader != null) {
+            batch.shader = shader
+            val sunAngle = TerminatorShader.sunAngleForPlanet(orbit.phase, orbit.rotation)
+            shader.setUniformf("u_sunAngle", sunAngle)
+        }
+
         batch.setColor(1f, 1f, 1f, orbit.alpha)
         batch.draw(
             region,
@@ -161,6 +170,10 @@ class PlanetField(
             orbit.rotation * MathUtils.radiansToDegrees
         )
         batch.setColor(Color.WHITE)
+
+        if (orbit.useTerminator && shader != null) {
+            batch.shader = null
+        }
     }
 
     private fun buildSun() {
@@ -237,6 +250,7 @@ class PlanetField(
             frontZ = frontZ,
             backZ = backZ,
             spinSpeed = spinDir * MathUtils.PI2 / spinPeriod,
+            useTerminator = true,
         )
         orbits.add(orbit)
         return orbit
@@ -259,6 +273,7 @@ class PlanetField(
             displayH = diameter,
             parentOrbit = parent,
             spinSpeed = spinDir * MathUtils.PI2 / spinPeriod,
+            useTerminator = true,
         ))
     }
 
