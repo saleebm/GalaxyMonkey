@@ -6,15 +6,16 @@ import com.badlogic.gdx.InputAdapter
 class GameplayInputProcessor(
     val moveStick: VirtualJoystick,
     val aimStick: VirtualJoystick,
+    private val viewWidth: () -> Float = { Gdx.graphics.width.toFloat() },
+    private val viewHeight: () -> Float = { Gdx.graphics.height.toFloat() },
 ) : InputAdapter() {
 
-    // Gdx touch coords are y-DOWN; VirtualJoystick expects y-UP.
-    private fun flipY(screenY: Int): Float = Gdx.graphics.height.toFloat() - screenY
+    private fun flipY(screenY: Int): Float = viewHeight() - screenY
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         val x = screenX.toFloat()
         val y = flipY(screenY)
-        val vw = Gdx.graphics.width.toFloat()
+        val vw = viewWidth()
         val claimedMove = moveStick.begin(pointer, x, y, vw)
         val claimedAim = aimStick.begin(pointer, x, y, vw)
         return claimedMove || claimedAim
