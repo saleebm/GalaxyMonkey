@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Disposable
 // Central audio wrapper. Missing files are graceful no-ops (ElevenLabs
 // pipeline fills them in incrementally). Port of AudioController.swift.
 
-class AudioController(
+open class AudioController(
     private val settings: SettingsStore,
     var listenerProvider: () -> Vector2 = { Vector2.Zero },
 ) : Disposable {
@@ -90,25 +90,25 @@ class AudioController(
         Gdx.app.log("AudioController", "Music stopped, duckFactor reset to 1.0")
     }
 
-    fun duckMusic() {
+    open fun duckMusic() {
         musicDuckFactor = 0.5f
         applyMusicVolume()
         Gdx.app.log("AudioController", "Music ducked: vol=${effectiveMusicVolume()}")
     }
 
-    fun unduckMusic() {
+    open fun unduckMusic() {
         musicDuckFactor = 1f
         applyMusicVolume()
         Gdx.app.log("AudioController", "Music unducked: vol=${effectiveMusicVolume()}")
     }
 
-    fun setMusicVolume(v: Float) {
+    open fun setMusicVolume(v: Float) {
         settings.musicVolume = v
         applyMusicVolume()
         Gdx.app.log("AudioController", "Music volume set: stored=${settings.musicVolume} effective=${effectiveMusicVolume()}")
     }
 
-    fun setSFXVolume(v: Float) {
+    open fun setSFXVolume(v: Float) {
         settings.sfxVolume = v
         Gdx.app.log("AudioController", "SFX volume set: ${settings.sfxVolume}")
     }
@@ -122,7 +122,7 @@ class AudioController(
 
     // --- SFX ---
 
-    fun play(sfx: Sfx, volume: Float = 1f) {
+    open fun play(sfx: Sfx, volume: Float = 1f) {
         val sound = ensureExists(sfx) ?: return
         val finalVol = (volume * settings.sfxVolume).coerceIn(0f, 1f)
         sound.play(finalVol)
