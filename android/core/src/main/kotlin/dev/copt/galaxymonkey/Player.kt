@@ -8,14 +8,10 @@ import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-fun interface Haptics {
-    fun warning()
-}
-
 class Player(
     private val sceneCenterX: Float,
     private val sceneCenterY: Float,
-    private val haptics: Haptics = Haptics {}
+    private val haptics: Haptics = NoOpHaptics,
 ) : Collidable {
 
     override val position: Vector2 = Vector2(
@@ -123,7 +119,7 @@ class Player(
         invulnRemaining = Tuning.Player.invulnDuration
         blinkPhase = 0.0
         onLivesChanged?.invoke(lives)
-        haptics.warning()
+        haptics.notification(NotificationType.WARNING)
         return true
     }
 

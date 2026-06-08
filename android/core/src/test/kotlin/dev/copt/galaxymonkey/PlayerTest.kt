@@ -21,7 +21,10 @@ class PlayerTest {
     fun setup() {
         hapticsCount = 0
         livesLog.clear()
-        player = Player(400f, 187.5f, haptics = Haptics { hapticsCount++ })
+        player = Player(400f, 187.5f, haptics = object : Haptics {
+            override fun impact(style: ImpactStyle) {}
+            override fun notification(type: NotificationType) { hapticsCount++ }
+        })
         player.onLivesChanged = { livesLog += it }
     }
 
