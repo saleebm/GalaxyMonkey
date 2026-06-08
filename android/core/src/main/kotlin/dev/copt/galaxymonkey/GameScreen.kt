@@ -15,6 +15,17 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
     private var accumulator = 0f
     private var firstFrameAfterReset = true
 
+    var isStarted = false
+        private set
+    var isGameOver = false
+        private set
+    var isInPauseMenu = false
+        private set
+    var isInSettings = false
+        private set
+    var gameplayPaused = false
+        private set
+
     override fun render(delta: Float) {
         val clamped = if (firstFrameAfterReset) {
             firstFrameAfterReset = false
@@ -42,7 +53,9 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
     }
 
     private fun update(dt: Float) {
-        // Gameplay simulation hook — wired by track3 systems.
+        if (!isStarted || isGameOver) return
+        if (gameplayPaused) return
+        // Gameplay simulation hook — wired by track3/5 systems.
     }
 
     private fun draw() {
@@ -52,6 +65,92 @@ class GameScreen(private val game: GalaxyMonkeyGame) : ScreenAdapter() {
         batch.projectionMatrix = camera.combined
         batch.begin()
         batch.end()
+    }
+
+    // --- Lifecycle orchestration ---
+
+    fun startGame() {
+        isStarted = true
+        isGameOver = false
+        gameplayPaused = false
+        resetClock()
+        Gdx.app.log("GameScreen", "lifecycle: startGame")
+    }
+
+    fun enterPauseMenu() {
+        isInPauseMenu = true
+        gameplayPaused = true
+        Gdx.app.log("GameScreen", "lifecycle: enterPauseMenu")
+    }
+
+    fun dismissPauseMenusAndResume() {
+        isInPauseMenu = false
+        isInSettings = false
+        resetClock()
+        gameplayPaused = false
+        Gdx.app.log("GameScreen", "lifecycle: resume gameplayPaused=false")
+    }
+
+    fun enterSettings() {
+        isInSettings = true
+        gameplayPaused = true
+        Gdx.app.log("GameScreen", "lifecycle: enterSettings")
+    }
+
+    fun dismissSettings() {
+        isInSettings = false
+        if (!isInPauseMenu) {
+            resetClock()
+            gameplayPaused = false
+            Gdx.app.log("GameScreen", "lifecycle: dismissSettings, resume gameplayPaused=false")
+        } else {
+            Gdx.app.log("GameScreen", "lifecycle: dismissSettings, still in pause menu")
+        }
+    }
+
+    fun gameOver() {
+        isGameOver = true
+        gameplayPaused = true
+        Gdx.app.log("GameScreen", "lifecycle: gameOver")
+    }
+
+    fun restart() {
+        isGameOver = false
+        isInPauseMenu = false
+        isInSettings = false
+        gameplayPaused = false
+        resetClock()
+        isStarted = true
+        Gdx.app.log("GameScreen", "lifecycle: restart")
+    }
+
+    fun returnToStart() {
+        isStarted = false
+        isGameOver = false
+        isInPauseMenu = false
+        isInSettings = false
+        gameplayPaused = false
+        resetClock()
+        Gdx.app.log("GameScreen", "lifecycle: returnToStart")
+    }
+
+    override fun pause() {
+        if (isStarted && !isGameOver && !isInPauseMenu && !isInSettings) {
+            enterPauseMenu()
+        } else {
+            gameplayPaused = true
+        }
+        Gdx.app.log("GameScreen", "lifecycle: pause (Android home/lock)")
+    }
+
+    override fun resume() {
+        if (isInPauseMenu || isInSettings) {
+            Gdx.app.log("GameScreen", "lifecycle: resume, menu open — staying paused")
+        } else {
+            resetClock()
+            gameplayPaused = false
+            Gdx.app.log("GameScreen", "lifecycle: resume gameplayPaused=false")
+        }
     }
 
     override fun resize(width: Int, height: Int) {
