@@ -6,11 +6,11 @@ import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.math.Vector2
 import kotlin.math.sqrt
 
-class GameControllerInput : ControllerListener {
+class GameControllerInput : ControllerListener, ControllerInput {
 
     private val connectedIds = mutableSetOf<String>()
 
-    val hasPhysicalController: Boolean get() = connectedIds.isNotEmpty()
+    override val hasPhysicalController: Boolean get() = connectedIds.isNotEmpty()
 
     val activeGamepad: Controller?
         get() = try {
@@ -19,7 +19,7 @@ class GameControllerInput : ControllerListener {
             null
         }
 
-    val moveVector: Vector2
+    override val moveVector: Vector2
         get() {
             val pad = activeGamepad ?: return Vector2.Zero
             val rawX = pad.getAxis(0)
@@ -27,7 +27,7 @@ class GameControllerInput : ControllerListener {
             return applyRadialDeadZone(rawX, rawY)
         }
 
-    val aimVector: Vector2
+    override val aimVector: Vector2
         get() {
             val pad = activeGamepad ?: return Vector2.Zero
             val rawX = pad.getAxis(2)
