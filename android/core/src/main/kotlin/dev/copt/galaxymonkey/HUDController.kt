@@ -460,6 +460,39 @@ class HUDController(
 
         musicSliderValue = store?.musicVolume ?: 0.75f
         sfxSliderValue = store?.sfxVolume ?: 0.75f
+
+        val hapticsRowY = HAPTICS_ROW_Y
+        hapticsLabelActor = Label("Haptics", labelStyle).apply {
+            setFontScale(BEST_FONT_SCALE)
+            setAlignment(Align.left)
+            setPosition(cx + SLIDER_LABEL_X, settingsViewportY + hapticsRowY)
+            name = SETTINGS_HAPTICS_LABEL_NODE_NAME
+        }
+        stage.addActor(hapticsLabelActor)
+
+        val onX = cx + SLIDER_LABEL_CTRL_X - TOGGLE_PILL_WIDTH / 2f - 4f
+        val offX = cx + SLIDER_LABEL_CTRL_X + TOGGLE_PILL_WIDTH / 2f + 4f
+        val toggleY = settingsViewportY + hapticsRowY
+
+        hapticsOnLabel = Label("On", labelStyle).apply {
+            setFontScale(BEST_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(onX, toggleY)
+            name = SETTINGS_HAPTICS_ON_NODE_NAME
+        }
+        stage.addActor(hapticsOnLabel)
+
+        hapticsOffLabel = Label("Off", labelStyle).apply {
+            setFontScale(BEST_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(offX, toggleY)
+            name = SETTINGS_HAPTICS_OFF_NODE_NAME
+        }
+        stage.addActor(hapticsOffLabel)
+
+        hapticsEnabled = store?.hapticsEnabled ?: true
+        updateHapticsToggleState(hapticsEnabled)
+
         settingsContentHeight = SLIDER_MUSIC_ROW_Y + 30f
         settingsContentY = 0f
     }
@@ -472,6 +505,9 @@ class HUDController(
         settingsBackLabel?.remove(); settingsBackLabel = null
         musicSliderLabel?.remove(); musicSliderLabel = null
         sfxSliderLabel?.remove(); sfxSliderLabel = null
+        hapticsLabelActor?.remove(); hapticsLabelActor = null
+        hapticsOnLabel?.remove(); hapticsOnLabel = null
+        hapticsOffLabel?.remove(); hapticsOffLabel = null
         settingsPanelX = 0f; settingsPanelY = 0f
         settingsPanelW = 0f; settingsPanelH = 0f
         settingsViewportW = 0f; settingsViewportH = 0f
@@ -552,6 +588,27 @@ class HUDController(
     fun sliderValueFromTouch(touch: Vector2, trackCenterX: Float): Float {
         val trackLeft = trackCenterX - SLIDER_TRACK_WIDTH / 2f
         return ((touch.x - trackLeft) / SLIDER_TRACK_WIDTH).coerceIn(0f, 1f)
+    }
+
+    private var hapticsOnLabel: Label? = null
+    private var hapticsOffLabel: Label? = null
+    private var hapticsLabelActor: Label? = null
+    private var hapticsEnabled = true
+
+    fun settingsHapticsHit(touch: Vector2): Boolean? {
+        if (!settingsMenuShown) return null
+        val onCenter = hapticsOnLabel?.let { Vector2(it.x, it.y) } ?: return null
+        val offCenter = hapticsOffLabel?.let { Vector2(it.x, it.y) } ?: return null
+        val pillSize = Vector2(TOGGLE_PILL_WIDTH, TOGGLE_PILL_HEIGHT)
+        if (rectHit(onCenter, pillSize, touch)) return true
+        if (rectHit(offCenter, pillSize, touch)) return false
+        return null
+    }
+
+    fun updateHapticsToggleState(enabled: Boolean) {
+        hapticsEnabled = enabled
+        hapticsOnLabel?.color = if (enabled) Color.WHITE else Color(1f, 1f, 1f, 0.35f)
+        hapticsOffLabel?.color = if (!enabled) Color.WHITE else Color(1f, 1f, 1f, 0.35f)
     }
 
     fun resize(width: Int, height: Int) {
@@ -658,5 +715,10 @@ class HUDController(
         const val SLIDER_MUSIC_ROW_Y = 80f
         const val SLIDER_SFX_ROW_Y = 40f
         const val SLIDER_HIT_HEIGHT = 44f
+
+        const val HAPTICS_ROW_Y = 0f
+        const val SETTINGS_HAPTICS_LABEL_NODE_NAME = "settingsHapticsLabel"
+        const val SETTINGS_HAPTICS_ON_NODE_NAME = "settingsHapticsOn"
+        const val SETTINGS_HAPTICS_OFF_NODE_NAME = "settingsHapticsOff"
     }
 }
