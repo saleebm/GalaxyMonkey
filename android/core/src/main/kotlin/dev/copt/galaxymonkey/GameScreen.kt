@@ -5,7 +5,17 @@ import com.badlogic.gdx.Preferences
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import dev.copt.galaxymonkey.render.CameraFollow
+import dev.copt.galaxymonkey.render.HaloTextures
+import dev.copt.galaxymonkey.render.PlanetField
+import dev.copt.galaxymonkey.render.ScreenShake
+import dev.copt.galaxymonkey.render.Starfield
+import dev.copt.galaxymonkey.render.TerminatorShader
+import dev.copt.galaxymonkey.render.ThrusterEmitter
+import dev.copt.galaxymonkey.render.VFXPool
 
 class GameScreen(
     private val game: GalaxyMonkeyGame,
@@ -23,6 +33,21 @@ class GameScreen(
             Gdx.app.log("GameScreen", "frame delta ${raw}s exceeds clamp ${clamped}s, discarding excess")
         },
     )
+
+    // --- Render layers (track6) ---
+    internal val cameraFollow = CameraFollow()
+    internal val screenShake = ScreenShake()
+    private val starfield = Starfield(WORLD_WIDTH, WORLD_HEIGHT)
+    private val planetField = PlanetField(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f)
+    internal val vfxPool = VFXPool()
+    internal val thruster = ThrusterEmitter()
+    private val shapeRenderer = ShapeRenderer()
+    private val screenProjection = Matrix4()
+
+    init {
+        TerminatorShader.init()
+        screenProjection.setToOrtho2D(0f, 0f, WORLD_WIDTH, WORLD_HEIGHT)
+    }
 
     var isStarted = false
         private set
@@ -66,15 +91,42 @@ class GameScreen(
     private fun update(dt: Float) {
         if (!isStarted || isGameOver) return
         if (gameplayPaused) return
-        // Gameplay simulation hook — wired by track3/5 systems.
+
+        starfield.update(dt, cameraFollow.cameraDeltaX, cameraFollow.cameraDeltaY)
+        planetField.update(dt)
+        vfxPool.update(dt)
+        thruster.update(dt)
+        screenShake.update()
     }
 
     private fun draw() {
         Gdx.gl.glClearColor(0.02f, 0.03f, 0.08f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         camera.update()
+
+        // Starfield — screen-space, behind everything
+        batch.projectionMatrix = screenProjection
+        batch.begin()
+        starfield.draw(batch)
+        batch.end()
+
+        // Orbit rings — world-space lines behind planets
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        shapeRenderer.projectionMatrix = camera.combined
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        planetField.drawRings(shapeRenderer)
+        shapeRenderer.end()
+
+        // World-space: planet bodies, comets, entities, VFX
         batch.projectionMatrix = camera.combined
         batch.begin()
+        planetField.drawBodies(batch)
+        planetField.drawComets(batch)
+        // Entity layer (player, enemies, projectiles) — wired by track3/5 integration.
+        thruster.render(batch)
+        vfxPool.renderDissolves(batch)
+        vfxPool.renderAdditive(batch)
         batch.end()
     }
 
@@ -177,11 +229,20 @@ class GameScreen(
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, true)
+        starfield.resize(viewport.worldWidth, viewport.worldHeight)
+        screenProjection.setToOrtho2D(0f, 0f, viewport.worldWidth, viewport.worldHeight)
+        cameraFollow.snapTo(camera.position.x, camera.position.y)
         Gdx.app.log("GameScreen", "resize ${width}x${height} -> world ${viewport.worldWidth}x${viewport.worldHeight}")
     }
 
     override fun dispose() {
-        // SpriteBatch owned by GalaxyMonkeyGame, not disposed here.
+        starfield.dispose()
+        planetField.dispose()
+        vfxPool.dispose()
+        thruster.dispose()
+        shapeRenderer.dispose()
+        HaloTextures.dispose()
+        TerminatorShader.dispose()
     }
 
     companion object {
