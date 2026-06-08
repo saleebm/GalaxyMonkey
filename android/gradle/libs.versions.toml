@@ -1,5 +1,6 @@
 [versions]
 gdx = "1.12.1"
+gdxControllers = "2.2.3"
 kotlin = "2.0.21"
 agp = "8.5.2"
 compileSdk = "34"
@@ -10,6 +11,7 @@ targetSdk = "34"
 gdx-core = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
 gdx-backend-android = { module = "com.badlogicgames.gdx:gdx-backend-android", version.ref = "gdx" }
 gdx-platform = { module = "com.badlogicgames.gdx:gdx-platform", version.ref = "gdx" }
+gdx-controllers-core = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "gdxControllers" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
