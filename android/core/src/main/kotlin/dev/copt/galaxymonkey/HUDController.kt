@@ -6,9 +6,11 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Disposable
@@ -41,6 +43,10 @@ class HUDController(
     val livesIcons: List<Image>
     private val livesFallbackLabel: Label?
 
+    var pauseButton: Image? = null
+        private set
+    var onPausePressed: (() -> Unit)? = null
+
     init {
         stage.addActor(scoreLabel)
         stage.addActor(bestLabel)
@@ -67,6 +73,22 @@ class HUDController(
             stage.addActor(livesFallbackLabel)
         }
 
+        val pauseRegion = try { SpriteCatalog.region(Sprite.PAUSE_ICON) } catch (_: UninitializedPropertyAccessException) { null }
+        if (pauseRegion != null) {
+            val scale = PAUSE_ICON_SIZE / maxOf(pauseRegion.regionWidth.toFloat(), pauseRegion.regionHeight.toFloat())
+            pauseButton = Image(TextureRegionDrawable(pauseRegion)).apply {
+                setSize(pauseRegion.regionWidth * scale, pauseRegion.regionHeight * scale)
+                isVisible = false
+                name = PAUSE_BUTTON_NODE_NAME
+                addListener(object : ClickListener() {
+                    override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                        onPausePressed?.invoke()
+                    }
+                })
+            }
+            stage.addActor(pauseButton)
+        }
+
         layoutLabels()
     }
 
@@ -79,6 +101,10 @@ class HUDController(
     fun setBest(b: Int) {
         bestScore = b
         bestLabel.setText("Best: $b")
+    }
+
+    fun setPauseButtonVisible(visible: Boolean) {
+        pauseButton?.isVisible = visible
     }
 
     fun setLives(l: Int) {
@@ -107,6 +133,10 @@ class HUDController(
             }
         }
         livesFallbackLabel?.setPosition(w - LIVES_RIGHT_MARGIN, h - SCORE_Y_OFFSET)
+
+        pauseButton?.let { btn ->
+            btn.setPosition(w - PAUSE_RIGHT_MARGIN - btn.width, h - PAUSE_Y_OFFSET)
+        }
     }
 
     fun resize(width: Int, height: Int) {
@@ -144,6 +174,11 @@ class HUDController(
         const val LIVES_RIGHT_MARGIN = 24f
         const val ICON_TARGET_SIZE = 32f
         const val ICON_GAP = 4f
+
+        const val PAUSE_ICON_SIZE = 48f
+        const val PAUSE_RIGHT_MARGIN = 24f
+        const val PAUSE_Y_OFFSET = 92f
+        const val PAUSE_BUTTON_NODE_NAME = "pauseButton"
 
         const val PAUSE_HIT_WIDTH = 280f
         const val PAUSE_HIT_HEIGHT = 48f
