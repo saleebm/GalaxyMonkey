@@ -139,12 +139,104 @@ class HUDController(
         }
     }
 
+    private var pauseMenuShown = false
+    private var pauseDimLabel: Label? = null
+    private var pauseTitleLabel: Label? = null
+    private var pauseResumeLabel: Label? = null
+    private var pauseSettingsLabel: Label? = null
+    private var pauseQuitLabel: Label? = null
+    private var resumePulseTime = 0f
+
+    val isPauseMenuVisible: Boolean get() = pauseMenuShown
+
+    fun showPauseMenu() {
+        if (pauseMenuShown) return
+        pauseMenuShown = true
+
+        val w = stage.viewport.worldWidth
+        val h = stage.viewport.worldHeight
+        val cx = w / 2f
+        val cy = h / 2f
+
+        val dimStyle = Label.LabelStyle(font, Color(0f, 0f, 0f, PAUSE_DIM_ALPHA))
+        pauseDimLabel = Label("", dimStyle).apply {
+            setSize(w, h)
+            setPosition(0f, 0f)
+            name = PAUSE_MENU_DIM_NODE_NAME
+        }
+        stage.addActor(pauseDimLabel)
+
+        val titleStyle = Label.LabelStyle(font, Color.WHITE)
+        pauseTitleLabel = Label("PAUSED", titleStyle).apply {
+            setFontScale(PAUSE_TITLE_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy + 80f)
+            setSize(0f, 0f)
+        }
+        stage.addActor(pauseTitleLabel)
+
+        val resumeStyle = Label.LabelStyle(font, Color.WHITE)
+        pauseResumeLabel = Label("Resume", resumeStyle).apply {
+            setFontScale(PAUSE_OPTION_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy + 10f)
+            name = PAUSE_MENU_RESUME_NODE_NAME
+        }
+        stage.addActor(pauseResumeLabel)
+
+        val settingsStyle = Label.LabelStyle(font, Color.WHITE)
+        pauseSettingsLabel = Label("Settings", settingsStyle).apply {
+            setFontScale(PAUSE_SETTINGS_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy - 40f)
+            name = PAUSE_MENU_SETTINGS_NODE_NAME
+        }
+        stage.addActor(pauseSettingsLabel)
+
+        val quitStyle = Label.LabelStyle(font, Color(1f, 1f, 1f, 0.55f))
+        pauseQuitLabel = Label("Quit to Title", quitStyle).apply {
+            setFontScale(PAUSE_QUIT_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy - 90f)
+            name = PAUSE_MENU_QUIT_NODE_NAME
+        }
+        stage.addActor(pauseQuitLabel)
+    }
+
+    fun dismissPauseMenu() {
+        if (!pauseMenuShown) return
+        pauseMenuShown = false
+        resumePulseTime = 0f
+        pauseDimLabel?.remove(); pauseDimLabel = null
+        pauseTitleLabel?.remove(); pauseTitleLabel = null
+        pauseResumeLabel?.remove(); pauseResumeLabel = null
+        pauseSettingsLabel?.remove(); pauseSettingsLabel = null
+        pauseQuitLabel?.remove(); pauseQuitLabel = null
+    }
+
+    fun pauseMenuHit(touch: Vector2): String? {
+        if (!pauseMenuShown) return null
+        val hitSize = Vector2(PAUSE_HIT_WIDTH, PAUSE_HIT_HEIGHT)
+        val resumePos = pauseResumeLabel?.let { Vector2(it.x, it.y) } ?: return null
+        if (rectHit(resumePos, hitSize, touch)) return PAUSE_MENU_RESUME_NODE_NAME
+        val settingsPos = pauseSettingsLabel?.let { Vector2(it.x, it.y) } ?: return null
+        if (rectHit(settingsPos, hitSize, touch)) return PAUSE_MENU_SETTINGS_NODE_NAME
+        val quitPos = pauseQuitLabel?.let { Vector2(it.x, it.y) } ?: return null
+        if (rectHit(quitPos, hitSize, touch)) return PAUSE_MENU_QUIT_NODE_NAME
+        return null
+    }
+
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
         layoutLabels()
     }
 
     fun render(delta: Float) {
+        if (pauseMenuShown) {
+            resumePulseTime += delta
+            val alpha = 0.775f + 0.225f * kotlin.math.sin(resumePulseTime * 2f * kotlin.math.PI.toFloat() / RESUME_PULSE_PERIOD)
+            pauseResumeLabel?.color?.a = alpha
+        }
         stage.act(delta)
         stage.draw()
     }
@@ -179,6 +271,18 @@ class HUDController(
         const val PAUSE_RIGHT_MARGIN = 24f
         const val PAUSE_Y_OFFSET = 92f
         const val PAUSE_BUTTON_NODE_NAME = "pauseButton"
+
+        const val PAUSE_DIM_ALPHA = 0.55f
+        const val PAUSE_TITLE_FONT_SCALE = 42f / 15f
+        const val PAUSE_OPTION_FONT_SCALE = 32f / 15f
+        const val PAUSE_SETTINGS_FONT_SCALE = 28f / 15f
+        const val PAUSE_QUIT_FONT_SCALE = 22f / 15f
+        const val RESUME_PULSE_PERIOD = 0.7f
+
+        const val PAUSE_MENU_DIM_NODE_NAME = "pauseMenuDim"
+        const val PAUSE_MENU_RESUME_NODE_NAME = "pauseMenuResume"
+        const val PAUSE_MENU_SETTINGS_NODE_NAME = "pauseMenuSettings"
+        const val PAUSE_MENU_QUIT_NODE_NAME = "pauseMenuQuit"
 
         const val PAUSE_HIT_WIDTH = 280f
         const val PAUSE_HIT_HEIGHT = 48f
