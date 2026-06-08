@@ -39,8 +39,10 @@ class ThrusterEmitter(private val maxParticles: Int = 256) : Disposable {
 
     private val particles = Array(maxParticles) { Particle() }
     private var spawnAccum = 0f
-    private var birthRate = 220f * 0.4f
-    private var particleSpeed = 160f
+    internal var birthRate = 220f * 0.4f
+        private set
+    internal var particleSpeed = 160f
+        private set
 
     var emitterX = 0f
     var emitterY = 0f
@@ -118,7 +120,9 @@ class ThrusterEmitter(private val maxParticles: Int = 256) : Disposable {
         p.alphaSpeed = -2.2f
     }
 
-    private fun sampleRamp(t: Float): Triple<Float, Float, Float> {
+    internal val aliveCount: Int get() = particles.count { it.alive }
+
+    internal fun sampleRamp(t: Float): Triple<Float, Float, Float> {
         if (t <= 0f) return Triple(colorRamp[0].r, colorRamp[0].g, colorRamp[0].b)
         for (i in 1 until colorRamp.size) {
             if (t <= colorRamp[i].t) {
