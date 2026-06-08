@@ -226,6 +226,79 @@ class HUDController(
         return null
     }
 
+    private var startPromptShown = false
+    private var startDimLabel: Label? = null
+    private var startTitleActor: com.badlogic.gdx.scenes.scene2d.Actor? = null
+    private var startSubtitleLabel: Label? = null
+    private var startTapLabel: Label? = null
+
+    val isStartPromptVisible: Boolean get() = startPromptShown
+
+    var onStartTapped: (() -> Unit)? = null
+
+    fun showStartPrompt() {
+        if (startPromptShown) return
+        startPromptShown = true
+
+        val w = stage.viewport.worldWidth
+        val h = stage.viewport.worldHeight
+        val cx = w / 2f
+        val cy = h / 2f
+
+        val dimStyle = Label.LabelStyle(font, Color(0f, 0f, 0f, START_DIM_ALPHA))
+        startDimLabel = Label("", dimStyle).apply {
+            setSize(w, h)
+            setPosition(0f, 0f)
+        }
+        stage.addActor(startDimLabel)
+
+        val titleRegion = try { SpriteCatalog.region(Sprite.TITLE) } catch (_: UninitializedPropertyAccessException) { null }
+        if (titleRegion != null) {
+            val capSize = minOf(w, h) * 0.55f
+            val scale = minOf(capSize * 2f / titleRegion.regionWidth, capSize / titleRegion.regionHeight)
+            startTitleActor = Image(TextureRegionDrawable(titleRegion)).apply {
+                setSize(titleRegion.regionWidth * scale, titleRegion.regionHeight * scale)
+                setPosition(cx - width / 2f, cy + 80f - height / 2f)
+            }
+        } else {
+            val goldStyle = Label.LabelStyle(font, TITLE_GOLD_COLOR)
+            startTitleActor = Label("GALAXY MONKEY", goldStyle).apply {
+                setFontScale(START_TITLE_FONT_SCALE)
+                setAlignment(Align.center)
+                setPosition(cx, cy + 30f)
+            }
+        }
+        stage.addActor(startTitleActor)
+
+        val subStyle = Label.LabelStyle(font, Color(1f, 1f, 1f, 0.85f))
+        startSubtitleLabel = Label("Left stick to move · Right stick to aim and fire", subStyle).apply {
+            setFontScale(START_SUBTITLE_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy - 30f)
+        }
+        stage.addActor(startSubtitleLabel)
+
+        val tapStyle = Label.LabelStyle(font, Color.WHITE)
+        startTapLabel = Label("Tap to start", tapStyle).apply {
+            setFontScale(START_TAP_FONT_SCALE)
+            setAlignment(Align.center)
+            setPosition(cx, cy - 70f)
+        }
+        stage.addActor(startTapLabel)
+    }
+
+    fun dismissStartPrompt() {
+        if (!startPromptShown) return
+        startPromptShown = false
+        startTapPulseTime = 0f
+        startDimLabel?.remove(); startDimLabel = null
+        startTitleActor?.remove(); startTitleActor = null
+        startSubtitleLabel?.remove(); startSubtitleLabel = null
+        startTapLabel?.remove(); startTapLabel = null
+    }
+
+    private var startTapPulseTime = 0f
+
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
         layoutLabels()
@@ -236,6 +309,11 @@ class HUDController(
             resumePulseTime += delta
             val alpha = 0.775f + 0.225f * kotlin.math.sin(resumePulseTime * 2f * kotlin.math.PI.toFloat() / RESUME_PULSE_PERIOD)
             pauseResumeLabel?.color?.a = alpha
+        }
+        if (startPromptShown) {
+            startTapPulseTime += delta
+            val alpha = 0.75f + 0.25f * kotlin.math.sin(startTapPulseTime * 2f * kotlin.math.PI.toFloat() / START_TAP_PULSE_PERIOD)
+            startTapLabel?.color?.a = alpha
         }
         stage.act(delta)
         stage.draw()
@@ -283,6 +361,13 @@ class HUDController(
         const val PAUSE_MENU_RESUME_NODE_NAME = "pauseMenuResume"
         const val PAUSE_MENU_SETTINGS_NODE_NAME = "pauseMenuSettings"
         const val PAUSE_MENU_QUIT_NODE_NAME = "pauseMenuQuit"
+
+        const val START_DIM_ALPHA = 0.3f
+        val TITLE_GOLD_COLOR = Color(1f, 0.85f, 0.30f, 1f)
+        const val START_TITLE_FONT_SCALE = 40f / 15f
+        const val START_SUBTITLE_FONT_SCALE = 16f / 15f
+        const val START_TAP_FONT_SCALE = 22f / 15f
+        const val START_TAP_PULSE_PERIOD = 0.7f
 
         const val PAUSE_HIT_WIDTH = 280f
         const val PAUSE_HIT_HEIGHT = 48f
